@@ -11,6 +11,10 @@ function getTransporter() {
         user: process.env.MAILTRAP_USER,
         pass: process.env.MAILTRAP_PASS,
       },
+      // Shared cPanel hosting serves mail behind a wildcard cert (*.web-hosting.com)
+      // that doesn't match mail.<yourdomain> — strict verification fails even with
+      // correct credentials, so relax it here.
+      tls: { rejectUnauthorized: false },
     });
   }
   return transporter;
