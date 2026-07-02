@@ -377,10 +377,24 @@ export default function LandingPage() {
       </nav>
 
       {/* ───────────────── HERO ───────────────── */}
-      <section className="relative z-10 pt-32 md:pt-44 pb-20 md:pb-32 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-          {/* text */}
-          <div className="flex-1 text-center lg:text-left animate-fade-in">
+      <section className="relative z-10 min-h-[92vh] flex items-center overflow-hidden">
+        {/* cover image */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1758273705998-05655eea4635?fm=jpg&q=80&w=2400&auto=format&fit=crop"
+            alt="Interzenex Microfinance customer smiling while banking on her phone and holding her card"
+            className="w-full h-full object-cover object-[80%_35%]"
+            loading="eager"
+          />
+          {/* readability + brand-tinted overlays — kept light so the photo stays visible */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-slate-950/10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-apex-500/5 via-transparent to-emerald-500/5" />
+        </div>
+
+        {/* content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16 w-full">
+          <div className="max-w-2xl text-center lg:text-left mx-auto lg:mx-0 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-light text-xs text-slate-300 mb-6">
               <Lock className="w-3.5 h-3.5 text-emerald-400" />
               <span>SOC 2 Type II Certified — Bank-level security</span>
@@ -391,7 +405,7 @@ export default function LandingPage() {
               <br />
               Boundaries
             </h1>
-            <p className="mt-6 text-base sm:text-lg text-slate-400 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+            <p className="mt-6 text-base sm:text-lg text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed">
               Multi-currency accounts, instant global transfers, and AI-powered
               financial insights — all in one premium digital banking platform.
             </p>
@@ -405,12 +419,12 @@ export default function LandingPage() {
               </Link>
               <a
                 href="#features"
-                className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-medium text-slate-300 rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all"
+                className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-medium text-slate-200 rounded-xl border border-white/20 hover:border-white/30 hover:bg-white/5 transition-all"
               >
                 Explore Features
               </a>
             </div>
-            <div className="mt-10 flex items-center gap-6 justify-center lg:justify-start text-xs text-slate-500">
+            <div className="mt-10 flex items-center gap-6 justify-center lg:justify-start text-xs text-slate-400">
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-soft" />
                 FDIC Insured
@@ -422,38 +436,18 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* floating graphic */}
-          <div className="flex-1 relative flex items-center justify-center animate-slide-up">
-            <div className="relative w-72 h-72 sm:w-96 sm:h-96">
-              {/* main orb */}
-              <div className="absolute inset-8 rounded-full bg-gradient-to-br from-apex-500/30 to-emerald-500/20 blur-xl animate-pulse-soft" />
-              <div className="absolute inset-12 rounded-full bg-gradient-to-tr from-apex-600/40 to-emerald-400/30 animate-float" />
-              {/* rings */}
-              <div className="absolute inset-0 rounded-full border border-apex-500/20 animate-[spin_20s_linear_infinite]" />
-              <div className="absolute inset-4 rounded-full border border-emerald-500/10 animate-[spin_25s_linear_infinite_reverse]" />
-              <div className="absolute inset-10 rounded-full border border-apex-400/15 animate-[spin_30s_linear_infinite]" />
-              {/* floating cards */}
-              <div className="absolute top-6 right-4 glass rounded-xl px-4 py-3 animate-float shadow-xl shadow-black/20">
-                <p className="text-[10px] text-slate-400">Transfer Sent</p>
-                <p className="text-sm font-bold text-emerald-400">+$12,450.00</p>
-              </div>
-              <div className="absolute bottom-10 left-0 glass rounded-xl px-4 py-3 animate-float [animation-delay:1s] shadow-xl shadow-black/20">
-                <p className="text-[10px] text-slate-400">Portfolio</p>
-                <p className="text-sm font-bold text-apex-400">↗ 24.8%</p>
-              </div>
-              <div className="absolute bottom-4 right-8 glass rounded-xl px-4 py-3 animate-float [animation-delay:0.5s] shadow-xl shadow-black/20">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-apex-400" />
-                  <span className="text-xs text-slate-300">Analytics</span>
-                </div>
-              </div>
-              {/* center icon */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-apex-500 to-emerald-500 flex items-center justify-center shadow-2xl shadow-apex-500/30">
-                  <Zap className="w-8 h-8 text-white" />
-                </div>
-              </div>
-            </div>
+          {/* floating stat cards over the cover image */}
+          <div className="hidden lg:block absolute top-24 right-8 xl:right-16 glass rounded-xl px-4 py-3 animate-float shadow-xl shadow-black/20">
+            <p className="text-[10px] text-slate-400">Transfer Sent</p>
+            <p className="text-sm font-bold text-emerald-400">+$12,450.00</p>
+          </div>
+          <div className="hidden lg:block absolute bottom-28 right-16 xl:right-28 glass rounded-xl px-4 py-3 animate-float [animation-delay:1s] shadow-xl shadow-black/20">
+            <p className="text-[10px] text-slate-400">Portfolio</p>
+            <p className="text-sm font-bold text-apex-400">↗ 24.8%</p>
+          </div>
+          <div className="hidden lg:flex absolute bottom-12 right-8 xl:right-16 items-center gap-2 glass rounded-xl px-4 py-3 animate-float [animation-delay:0.5s] shadow-xl shadow-black/20">
+            <BarChart3 className="w-4 h-4 text-apex-400" />
+            <span className="text-xs text-slate-300">Analytics</span>
           </div>
         </div>
       </section>
