@@ -2,12 +2,15 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuthUser } from "@/lib/useAuthUser";
+import { COUNTRIES, getCountryCurrency, countryFlag } from "@/lib/countries";
+import { CURRENCIES } from "@/lib/currencies";
 import {
   Users,
   Search,
   X,
   Save,
   ChevronRight,
+  ChevronDown,
   AlertTriangle,
   CheckCircle2,
   ShieldAlert,
@@ -18,6 +21,13 @@ import {
   Hash,
   Edit3,
   Loader2,
+  UserPlus,
+  Lock,
+  Eye,
+  EyeOff,
+  Coins,
+  Globe2,
+  User,
 } from "lucide-react";
 
 const STATUS_CONFIG = {
@@ -70,6 +80,19 @@ export default function AdminUsersPage() {
   const [accountBalances, setAccountBalances] = useState({});
   const [savingBalances, setSavingBalances] = useState(false);
   const [balanceFeedback, setBalanceFeedback] = useState(null);
+
+  // Create-user modal
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    country: "US",
+    currency: "USD",
+  });
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createFeedback, setCreateFeedback] = useState(null);
 
   const fetchUsers = useCallback(async () => {
     if (!admin?.id) return;
@@ -217,6 +240,72 @@ export default function AdminUsersPage() {
     setSavingBalances(false);
   };
 
+  const openCreateModal = () => {
+    setCreateForm({ name: "", email: "", password: "", country: "US", currency: "USD" });
+    setCreateFeedback(null);
+    setShowCreatePassword(false);
+    setCreateModalOpen(true);
+  };
+
+  const closeCreateModal = () => {
+    setCreateModalOpen(false);
+    setTimeout(() => setCreateFeedback(null), 300);
+  };
+
+  const handleCreateCountryChange = (e) => {
+    const countryCode = e.target.value;
+    setCreateForm((prev) => ({
+      ...prev,
+      country: countryCode,
+      currency: getCountryCurrency(countryCode),
+    }));
+  };
+
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    if (!admin?.id) return;
+
+    if (!createForm.name.trim() || !createForm.email.trim() || !createForm.password) {
+      setCreateFeedback({ type: "error", message: "Name, email, and password are required." });
+      return;
+    }
+    if (createForm.password.length < 6) {
+      setCreateFeedback({ type: "error", message: "Password must be at least 6 characters." });
+      return;
+    }
+
+    setCreating(true);
+    setCreateFeedback(null);
+
+    try {
+      const res = await fetch(`/api/admin/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          adminId: admin.id,
+          name: createForm.name,
+          email: createForm.email,
+          password: createForm.password,
+          country: createForm.country,
+          currency: createForm.currency,
+        }),
+      });
+      const json = await res.json();
+
+      if (json.success) {
+        setCreateFeedback({ type: "success", message: `Account created for ${json.user.email}.` });
+        await fetchUsers();
+        setTimeout(() => closeCreateModal(), 1200);
+      } else {
+        setCreateFeedback({ type: "error", message: json.error || "Failed to create user." });
+      }
+    } catch (err) {
+      setCreateFeedback({ type: "error", message: err.message });
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const filteredUsers = users.filter((user) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
@@ -268,6 +357,13 @@ export default function AdminUsersPage() {
               {users.length} users
             </span>
           </div>
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-apex-600 to-apex-500 hover:from-apex-500 hover:to-apex-400 text-white text-sm font-semibold transition-all duration-200 btn-shine shadow-lg shadow-apex-500/20"
+          >
+            <UserPlus className="w-4 h-4" />
+            Create User
+          </button>
         </div>
       </div>
 
@@ -738,6 +834,179 @@ export default function AdminUsersPage() {
               </div>
             </>
           )}
+        </div>
+      </div>
+
+      {/* Create User Modal */}
+      <div
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center px-4 transition-opacity duration-300 ${
+          createModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={closeCreateModal}
+      >
+        <div
+          className={`w-full max-w-md glass rounded-2xl shadow-2xl shadow-black/30 transform transition-all duration-300 ${
+            createModalOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-700/40">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Create User</h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Sets up a full account exactly like self-registration
+              </p>
+            </div>
+            <button
+              onClick={closeCreateModal}
+              className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all duration-200"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <form onSubmit={handleCreateUser} className="px-6 py-5 space-y-4">
+            {/* Full name */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="John Doe"
+                  value={createForm.name}
+                  onChange={(e) => setCreateForm((prev) => ({ ...prev, name: e.target.value }))}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={createForm.email}
+                  onChange={(e) => setCreateForm((prev) => ({ ...prev, email: e.target.value }))}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type={showCreatePassword ? "text" : "password"}
+                  placeholder="Min. 6 characters"
+                  value={createForm.password}
+                  onChange={(e) => setCreateForm((prev) => ({ ...prev, password: e.target.value }))}
+                  className="w-full pl-10 pr-12 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCreatePassword(!showCreatePassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                >
+                  {showCreatePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <p className="mt-1.5 text-xs text-slate-500">
+                Share this password with the user directly — it's set exactly as typed here.
+              </p>
+            </div>
+
+            {/* Country */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                Country
+              </label>
+              <div className="relative">
+                <Globe2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <select
+                  value={createForm.country}
+                  onChange={handleCreateCountryChange}
+                  className="w-full appearance-none pl-10 pr-10 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+                >
+                  {COUNTRIES.map((c) => (
+                    <option key={c.code} value={c.code} className="bg-slate-800 text-white">
+                      {countryFlag(c.code)} {c.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Currency */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                Base Currency
+              </label>
+              <div className="relative">
+                <Coins className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <select
+                  value={createForm.currency}
+                  onChange={(e) => setCreateForm((prev) => ({ ...prev, currency: e.target.value }))}
+                  className="w-full appearance-none pl-10 pr-10 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code} className="bg-slate-800 text-white">
+                      {c.code} — {c.name} ({c.symbol})
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Feedback */}
+            {createFeedback && (
+              <div
+                className={`rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2 animate-fade-in ${
+                  createFeedback.type === "success"
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "bg-red-500/10 text-red-400 border border-red-500/20"
+                }`}
+              >
+                {createFeedback.type === "success" ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                )}
+                {createFeedback.message}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={creating}
+              className="w-full flex items-center justify-center gap-2 py-3.5 px-6 text-sm font-semibold text-white bg-gradient-to-r from-apex-500 to-emerald-500 rounded-xl hover:shadow-lg hover:shadow-apex-500/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed btn-shine"
+            >
+              {creating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creating account…
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4" />
+                  Create Account
+                </>
+              )}
+            </button>
+          </form>
         </div>
       </div>
     </div>

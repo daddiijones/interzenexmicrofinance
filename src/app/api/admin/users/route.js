@@ -1,5 +1,77 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import bcrypt from 'bcryptjs';
+import { seedUserTransactions, generateAccountNumber, generateApprovalCode } from '@/lib/seedHelper';
+
+export async function POST(request) {
+  try {
+    const { adminId, email, password, name, currency, country } = await request.json();
+
+    if (!adminId) {
+      return NextResponse.json({ success: false, error: "Unauthorized access" }, { status: 401 });
+    }
+
+    const admin = await prisma.user.findUnique({ where: { id: parseInt(adminId) } });
+    if (!admin || admin.role !== "ADMIN") {
+      return NextResponse.json({ success: false, error: "Forbidden access" }, { status: 403 });
+    }
+
+    if (!email || !password || !name) {
+      return NextResponse.json({ success: false, error: "Name, email, and password are required." }, { status: 400 });
+    }
+    if (password.length < 6) {
+      return NextResponse.json({ success: false, error: "Password must be at least 6 characters." }, { status: 400 });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return NextResponse.json({ success: false, error: "Email is already registered." }, { status: 400 });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const userAccountNumber = generateAccountNumber();
+    const userApprovalCode = generateApprovalCode();
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: passwordHash,
+        name,
+        role: "USER",
+        country: country || "",
+        accountNumber: userAccountNumber,
+        dailyLimit: 5000.00,
+        status: "ACTIVE",
+        transferCount: 5,
+        approvalCode: userApprovalCode,
+        restrictionMessage: "You have reached your daily transfer limit. Please contact support to obtain your Approval Code to authorise this transaction."
+      }
+    });
+
+    // Same account/transaction seeding a self-registered user gets
+    await seedUserTransactions(user.id, user.email, user.name, currency || "USD");
+
+    await prisma.auditLog.create({
+      data: {
+        adminId: admin.id,
+        adminName: admin.name,
+        action: "ADMIN_CREATED_USER",
+        details: `Created user account for ${user.email}`
+      }
+    });
+
+    const fullUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: { accounts: true }
+    });
+    const { password: _, ...userWithoutPassword } = fullUser;
+
+    return NextResponse.json({ success: true, user: userWithoutPassword });
+  } catch (error) {
+    console.error("POST admin create user error: ", error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
 
 export async function GET(request) {
   try {
