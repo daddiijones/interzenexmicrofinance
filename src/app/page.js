@@ -31,6 +31,13 @@ import {
   Activity,
   Quote,
   HelpCircle,
+  Handshake,
+  Smartphone,
+  Gift,
+  Users,
+  CheckCircle2,
+  PhoneCall,
+  Fingerprint,
 } from "lucide-react";
 
 /* ──────────────────────── animated counter hook ──────────────────────── */
@@ -208,19 +215,33 @@ const testimonials = [
       "Interzenex Microfinance made it possible for my agency to pay contractors in twelve countries without the usual wire delays or surprise fees.",
     name: "Amara Okafor",
     role: "Agency Owner, Lagos",
+    avatar:
+      "https://images.unsplash.com/photo-1611432579402-7037e3e2c1e4?fm=jpg&q=80&w=256&auto=format&fit=crop",
   },
   {
     quote:
       "Switching from my old bank saved me hundreds of dollars a month in international transfer fees alone.",
     name: "Daniel Kowalski",
     role: "Freelance Consultant, Toronto",
+    avatar:
+      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?fm=jpg&q=80&w=256&auto=format&fit=crop",
   },
   {
     quote:
       "The OTP login and Approval Code verification give me real peace of mind — it actually feels like a bank that takes security seriously.",
     name: "Priya Ramesh",
     role: "Product Manager, Singapore",
+    avatar:
+      "https://images.unsplash.com/photo-1573496527892-904f897eb744?fm=jpg&q=80&w=256&auto=format&fit=crop",
   },
+];
+
+/* ──────────────────────── mobile banking highlights ──────────────────────── */
+const mobileBankingPoints = [
+  "Biometric face & fingerprint login on every device",
+  "Instant push notifications for every transaction",
+  "One-tap transfers to saved recipients",
+  "Freeze or unfreeze your card in seconds",
 ];
 
 /* ──────────────────────── faq data ──────────────────────── */
@@ -437,6 +458,94 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ───────────────── PROMO BANNER ───────────────── */}
+      <section className="relative z-10 px-4 sm:px-6 lg:px-8 pb-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="glass rounded-2xl px-6 py-5 sm:px-8 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-4 border border-apex-500/20 animate-fade-in">
+            <div className="flex items-center gap-4 text-center sm:text-left">
+              <div className="hidden sm:flex w-11 h-11 rounded-xl bg-gradient-to-br from-apex-500/20 to-emerald-500/20 items-center justify-center shrink-0">
+                <Gift className="w-5 h-5 text-apex-400" />
+              </div>
+              <p className="text-sm sm:text-base text-slate-200">
+                <span className="font-semibold text-white">Limited time:</span>{" "}
+                Get a{" "}
+                <span className="gradient-text font-bold">$50 welcome bonus</span>{" "}
+                when you open and fund a new account this month.
+              </p>
+            </div>
+            <Link
+              href="/register"
+              className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-apex-500 to-emerald-500 rounded-lg hover:shadow-lg hover:shadow-apex-500/25 transition-all btn-shine whitespace-nowrap"
+            >
+              Claim Offer
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ───────────────── HUMAN TOUCH ───────────────── */}
+      <section className="relative z-10 py-20 md:py-32 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+          {/* image */}
+          <div className="flex-1 w-full animate-slide-up">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-black/40">
+              <img
+                src="https://images.unsplash.com/photo-1686771416282-3888ddaf249b?fm=jpg&q=80&w=1200&auto=format&fit=crop"
+                alt="Interzenex Microfinance relationship manager meeting with a customer in a branch office"
+                className="w-full h-[320px] sm:h-[420px] object-cover"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/0 to-slate-950/0" />
+              <div className="absolute bottom-5 left-5 right-5 glass rounded-xl px-4 py-3 flex items-center gap-3">
+                <div className="flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/20 shrink-0">
+                  <PhoneCall className="w-4 h-4 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-white">Real people, real support</p>
+                  <p className="text-[11px] text-slate-400">Average response time under 2 minutes</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* text */}
+          <div className="flex-1 animate-fade-in">
+            <p className="text-sm font-medium text-apex-400 tracking-widest uppercase mb-3">
+              Human Support
+            </p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+              Banking With a{" "}
+              <span className="gradient-text">Human Touch</span>
+            </h2>
+            <p className="mt-6 text-slate-400 leading-relaxed">
+              Behind every account is a real relationship manager, not just a
+              chatbot. Whether you&apos;re opening your first account or
+              structuring a cross-border payroll run, our team is available
+              around the clock to help — by phone, live chat, or email.
+            </p>
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { icon: Users, label: "Dedicated relationship managers" },
+                { icon: PhoneCall, label: "24/7 live phone & chat support" },
+                { icon: Handshake, label: "In-branch appointments available" },
+                { icon: Fingerprint, label: "Verified, background-checked staff" },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.label} className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-apex-500/10 border border-apex-500/20 shrink-0">
+                      <Icon className="w-4 h-4 text-apex-400" />
+                    </div>
+                    <span className="text-sm text-slate-300">{item.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ───────────────── FEATURES ───────────────── */}
       <section id="features" className="relative z-10 py-20 md:py-32 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -521,6 +630,59 @@ export default function LandingPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* ───────────────── MOBILE BANKING SPOTLIGHT ───────────────── */}
+      <section className="relative z-10 py-20 md:py-32 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-20">
+          {/* text */}
+          <div className="flex-1 animate-fade-in">
+            <p className="text-sm font-medium text-apex-400 tracking-widest uppercase mb-3">
+              Mobile Banking
+            </p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+              Your Whole Bank,{" "}
+              <span className="gradient-text">In Your Pocket</span>
+            </h2>
+            <p className="mt-6 text-slate-400 leading-relaxed">
+              Check balances, move money, and manage your cards from anywhere —
+              the Interzenex Microfinance experience is built mobile-first, so a
+              full banking session takes seconds, not minutes.
+            </p>
+            <ul className="mt-8 space-y-3">
+              {mobileBankingPoints.map((point) => (
+                <li key={point} className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                  <span className="text-sm text-slate-300">{point}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/register"
+              className="mt-8 inline-flex items-center gap-2 px-7 py-3 text-sm font-semibold text-white bg-gradient-to-r from-apex-500 to-emerald-500 rounded-xl hover:shadow-lg hover:shadow-apex-500/25 transition-all btn-shine"
+            >
+              Get Started Free
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {/* image */}
+          <div className="flex-1 w-full animate-slide-up">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-black/40">
+              <img
+                src="https://images.unsplash.com/photo-1758519291442-6a34815b0ae3?fm=jpg&q=80&w=1200&auto=format&fit=crop"
+                alt="Customer smiling while paying with a card and mobile banking app"
+                className="w-full h-[320px] sm:h-[420px] object-cover"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/0 to-slate-950/0" />
+              <div className="absolute top-5 right-5 glass rounded-xl px-4 py-3 flex items-center gap-2 shadow-lg shadow-black/20">
+                <Smartphone className="w-4 h-4 text-apex-400" />
+                <span className="text-xs font-medium text-slate-200">4.9★ App Rating</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -623,9 +785,12 @@ export default function LandingPage() {
                   &ldquo;{t.quote}&rdquo;
                 </p>
                 <div className="mt-6 flex items-center gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-apex-500 to-emerald-500 text-white text-sm font-bold shrink-0">
-                    {t.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                  </div>
+                  <img
+                    src={t.avatar}
+                    alt={t.name}
+                    loading="lazy"
+                    className="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-apex-500/20"
+                  />
                   <div>
                     <p className="text-sm font-semibold text-slate-200">{t.name}</p>
                     <p className="text-xs text-slate-500">{t.role}</p>
@@ -663,20 +828,30 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="flex-1 grid grid-cols-2 gap-4 w-full">
-            {[
-              { label: "Founded", value: "2016" },
-              { label: "Headquarters", value: "New York, NY" },
-              { label: "Customers", value: "500K+" },
-              { label: "Countries", value: "190+" },
-            ].map((fact) => (
-              <div key={fact.label} className="glass rounded-2xl p-6 text-center">
-                <p className="text-2xl font-bold gradient-text">{fact.value}</p>
-                <p className="mt-1 text-xs text-slate-500 uppercase tracking-wider">
-                  {fact.label}
-                </p>
-              </div>
-            ))}
+          <div className="flex-1 w-full space-y-4">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-black/40 animate-slide-up">
+              <img
+                src="https://images.unsplash.com/photo-1758873269276-9518d0cb4a0b?fm=jpg&q=80&w=1200&auto=format&fit=crop"
+                alt="Diverse Interzenex Microfinance team collaborating in the office"
+                className="w-full h-[220px] sm:h-[260px] object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { label: "Founded", value: "2016" },
+                { label: "Headquarters", value: "New York, NY" },
+                { label: "Customers", value: "500K+" },
+                { label: "Countries", value: "190+" },
+              ].map((fact) => (
+                <div key={fact.label} className="glass rounded-2xl p-6 text-center">
+                  <p className="text-2xl font-bold gradient-text">{fact.value}</p>
+                  <p className="mt-1 text-xs text-slate-500 uppercase tracking-wider">
+                    {fact.label}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
