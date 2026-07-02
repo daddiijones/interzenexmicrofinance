@@ -414,15 +414,15 @@ export default function LandingPage() {
                 href="/register"
                 className="group relative inline-flex items-center gap-2 px-8 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-apex-500 to-emerald-500 rounded-xl shadow-xl shadow-apex-500/20 hover:shadow-apex-500/40 transition-all btn-shine"
               >
-                Open Free Account
+                Create Account Today
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <a
-                href="#features"
+              <Link
+                href="/login"
                 className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-medium text-slate-200 rounded-xl border border-white/20 hover:border-white/30 hover:bg-white/5 transition-all"
               >
-                Explore Features
-              </a>
+                Login
+              </Link>
             </div>
             <div className="mt-10 flex items-center gap-6 justify-center lg:justify-start text-xs text-slate-400">
               <span className="flex items-center gap-1.5">
