@@ -13,7 +13,7 @@ generator client {
   // cPanel's CageFS jail hides /etc/os-release, so Prisma's own platform
   // auto-detection guesses wrong (debian-openssl-1.0.x) even though the
   // server actually has OpenSSL 1.1.1k. Bundle the correct engine explicitly.
-  binaryTargets = ["native", "rhel-openssl-1.1.x", "debian-openssl-1.1.x"]
+  binaryTargets = ["native", "rhel-openssl-1.1.x", "debian-openssl-1.1.x", "debian-openssl-1.0.x"]
 }
 
 model User {
