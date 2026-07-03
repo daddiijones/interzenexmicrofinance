@@ -43,6 +43,11 @@ const STATUS_STYLES = {
     text: "text-red-400",
     border: "border-red-500/20",
   },
+  REJECTED: {
+    bg: "bg-red-500/10",
+    text: "text-red-400",
+    border: "border-red-500/20",
+  },
 };
 
 function formatDate(dateStr) {

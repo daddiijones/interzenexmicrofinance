@@ -20,6 +20,7 @@ import {
   Shield,
   Menu,
   X,
+  Receipt,
 } from "lucide-react";
 
 const USER_NAV = [
@@ -34,6 +35,7 @@ const USER_NAV = [
 const ADMIN_NAV = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
   { label: "Users", href: "/admin/users", icon: Users },
+  { label: "Transactions", href: "/admin/transactions", icon: Receipt },
   { label: "Tickets", href: "/admin/tickets", icon: MessageSquare },
   { label: "Audit Log", href: "/admin/audit", icon: FileText },
 ];
@@ -192,16 +194,24 @@ export default function Sidebar({ role = "USER", currentPath }) {
               }`}
             >
               {/* Avatar */}
-              <div className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-apex-500 to-emerald-500 text-white text-sm font-bold shrink-0 shadow-md">
-                {user.name
-                  ? user.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase()
-                      .slice(0, 2)
-                  : "U"}
-              </div>
+              {user.profilePhoto ? (
+                <img
+                  src={`/api/files/${user.profilePhoto}`}
+                  alt={user.name || "Profile"}
+                  className="w-9 h-9 rounded-full object-cover shrink-0 shadow-md ring-2 ring-apex-500/20"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-apex-500 to-emerald-500 text-white text-sm font-bold shrink-0 shadow-md">
+                  {user.name
+                    ? user.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .slice(0, 2)
+                    : "U"}
+                </div>
+              )}
               {!collapsed && (
                 <div className="flex-1 min-w-0 animate-fade-in">
                   <p className="text-sm font-semibold text-slate-200 truncate">

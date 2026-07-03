@@ -20,7 +20,19 @@ import {
   Coins,
   Globe2,
   ChevronDown,
+  Camera,
+  IdCard,
+  Upload,
 } from "lucide-react";
+
+async function uploadFile(file, userId, type) {
+  const body = new FormData();
+  body.append("file", file);
+  body.append("userId", userId);
+  body.append("type", type);
+  const res = await fetch("/api/upload", { method: "POST", body });
+  return res.json();
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -49,6 +61,8 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [profilePhotoFile, setProfilePhotoFile] = useState(null);
+  const [passportFile, setPassportFile] = useState(null);
 
   function update(field) {
     return (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -108,10 +122,21 @@ export default function RegisterPage() {
         return;
       }
 
-      // Store user in localStorage
       const user = data.user || data;
-      setAuthUser(user);
 
+      // Uploads happen after account creation since they need a userId.
+      // Registration itself already succeeded at this point, so an upload
+      // failure here is surfaced but doesn't block the new account.
+      if (profilePhotoFile) {
+        const upRes = await uploadFile(profilePhotoFile, user.id, "profile");
+        if (upRes.success) user.profilePhoto = upRes.path;
+      }
+      if (passportFile) {
+        const upRes = await uploadFile(passportFile, user.id, "passport");
+        if (upRes.success) user.passportDocument = upRes.path;
+      }
+
+      setAuthUser(user);
       setSuccess("Account created successfully! Redirecting…");
 
       setTimeout(() => {
@@ -345,6 +370,52 @@ export default function RegisterPage() {
                 </select>
                 <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               </div>
+            </div>
+
+            {/* profile photo */}
+            <div>
+              <label htmlFor="profilePhoto" className="block text-sm font-medium text-slate-300 mb-1.5">
+                Profile Photo <span className="text-slate-500 font-normal">(optional)</span>
+              </label>
+              <label
+                htmlFor="profilePhoto"
+                className="flex items-center gap-3 px-4 py-3 bg-slate-800/60 border border-dashed border-slate-700/50 rounded-xl text-sm text-slate-400 hover:border-apex-500/40 hover:text-slate-300 cursor-pointer transition-all"
+              >
+                <Camera className="w-4 h-4 shrink-0" />
+                <span className="truncate">{profilePhotoFile ? profilePhotoFile.name : "Upload a photo (JPG, PNG, WEBP — max 5MB)"}</span>
+                <input
+                  id="profilePhoto"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => setProfilePhotoFile(e.target.files?.[0] || null)}
+                />
+              </label>
+            </div>
+
+            {/* passport / ID */}
+            <div>
+              <label htmlFor="passportDoc" className="block text-sm font-medium text-slate-300 mb-1.5">
+                Passport / ID Document <span className="text-slate-500 font-normal">(optional)</span>
+              </label>
+              <label
+                htmlFor="passportDoc"
+                className="flex items-center gap-3 px-4 py-3 bg-slate-800/60 border border-dashed border-slate-700/50 rounded-xl text-sm text-slate-400 hover:border-apex-500/40 hover:text-slate-300 cursor-pointer transition-all"
+              >
+                <IdCard className="w-4 h-4 shrink-0" />
+                <span className="truncate">{passportFile ? passportFile.name : "Upload for identity verification (JPG, PNG, or PDF)"}</span>
+                <input
+                  id="passportDoc"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  className="hidden"
+                  onChange={(e) => setPassportFile(e.target.files?.[0] || null)}
+                />
+              </label>
+              <p className="mt-1.5 text-xs text-slate-500 flex items-center gap-1.5">
+                <Upload className="w-3 h-3" />
+                Only visible to you and Interzenex Microfinance staff for verification.
+              </p>
             </div>
 
             {/* terms */}

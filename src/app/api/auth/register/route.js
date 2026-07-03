@@ -32,7 +32,7 @@ export async function POST(request) {
         country: country || "",
         accountNumber: userAccountNumber,
         dailyLimit: 5000.00,
-        status: "ACTIVE",
+        status: "PENDING_APPROVAL",
         transferCount: 5,
         approvalCode: userApprovalCode,
         restrictionMessage: "You have reached your daily transfer limit. Please contact support to obtain your Approval Code to authorise this transaction."

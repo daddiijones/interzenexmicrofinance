@@ -37,6 +37,10 @@ yarn-error.log*
 /prisma/*.db
 /prisma/*.db-journal
 
+# user-uploaded files (profile photos, passport documents — never commit PII)
+/uploads
+.next/standalone/uploads
+
 # vercel
 .vercel
 

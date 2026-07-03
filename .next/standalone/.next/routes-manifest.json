@@ -31,12 +31,29 @@
       "namedRegex": "^/api/admin/accounts/(?<nxtPid>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/api/admin/transactions/[id]",
+      "regex": "^/api/admin/transactions/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/transactions/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/api/admin/users/[id]/limits",
       "regex": "^/api/admin/users/([^/]+?)/limits(?:/)?$",
       "routeKeys": {
         "nxtPid": "nxtPid"
       },
       "namedRegex": "^/api/admin/users/(?<nxtPid>[^/]+?)/limits(?:/)?$"
+    },
+    {
+      "page": "/api/files/[type]/[filename]",
+      "regex": "^/api/files/([^/]+?)/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtype": "nxtPtype",
+        "nxtPfilename": "nxtPfilename"
+      },
+      "namedRegex": "^/api/files/(?<nxtPtype>[^/]+?)/(?<nxtPfilename>[^/]+?)(?:/)?$"
     },
     {
       "page": "/api/support/[id]",
@@ -91,6 +108,12 @@
       "namedRegex": "^/admin/tickets(?:/)?$"
     },
     {
+      "page": "/admin/transactions",
+      "regex": "^/admin/transactions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/transactions(?:/)?$"
+    },
+    {
       "page": "/admin/users",
       "regex": "^/admin/users(?:/)?$",
       "routeKeys": {},
@@ -143,6 +166,12 @@
       "regex": "^/api/transactions(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/transactions(?:/)?$"
+    },
+    {
+      "page": "/api/upload",
+      "regex": "^/api/upload(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/upload(?:/)?$"
     },
     {
       "page": "/api/user",

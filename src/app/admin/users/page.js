@@ -28,7 +28,21 @@ import {
   Coins,
   Globe2,
   User,
+  Camera,
+  IdCard,
+  Clock,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
+
+async function uploadFile(file, userId, type) {
+  const body = new FormData();
+  body.append("file", file);
+  body.append("userId", userId);
+  body.append("type", type);
+  const res = await fetch("/api/upload", { method: "POST", body });
+  return res.json();
+}
 
 const STATUS_CONFIG = {
   ACTIVE: {
@@ -42,6 +56,16 @@ const STATUS_CONFIG = {
     icon: ShieldAlert,
   },
   SUSPENDED: {
+    color: "bg-red-500/10 text-red-400 border-red-500/20",
+    dot: "bg-red-400",
+    icon: ShieldOff,
+  },
+  PENDING_APPROVAL: {
+    color: "bg-sky-500/10 text-sky-400 border-sky-500/20",
+    dot: "bg-sky-400",
+    icon: Clock,
+  },
+  REJECTED: {
     color: "bg-red-500/10 text-red-400 border-red-500/20",
     dot: "bg-red-400",
     icon: ShieldOff,
@@ -93,6 +117,8 @@ export default function AdminUsersPage() {
   const [showCreatePassword, setShowCreatePassword] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createFeedback, setCreateFeedback] = useState(null);
+  const [createProfilePhotoFile, setCreateProfilePhotoFile] = useState(null);
+  const [createPassportFile, setCreatePassportFile] = useState(null);
 
   const fetchUsers = useCallback(async () => {
     if (!admin?.id) return;
@@ -202,6 +228,32 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleQuickStatus = async (newStatus) => {
+    if (!admin?.id || !selectedUser) return;
+    setSaving(true);
+    setFeedback(null);
+    try {
+      const res = await fetch(`/api/admin/users/${selectedUser.id}/limits`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminId: admin.id, status: newStatus }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setFeedback({ type: "success", message: `Account ${newStatus === "ACTIVE" ? "approved" : "rejected"}.` });
+        setForm((prev) => ({ ...prev, status: newStatus }));
+        setSelectedUser((prev) => ({ ...prev, ...json.user }));
+        await fetchUsers();
+      } else {
+        setFeedback({ type: "error", message: json.error || "Failed to update status." });
+      }
+    } catch (err) {
+      setFeedback({ type: "error", message: err.message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSaveBalances = async () => {
     if (!admin?.id || !selectedUser) return;
     setSavingBalances(true);
@@ -244,6 +296,8 @@ export default function AdminUsersPage() {
     setCreateForm({ name: "", email: "", password: "", country: "US", currency: "USD" });
     setCreateFeedback(null);
     setShowCreatePassword(false);
+    setCreateProfilePhotoFile(null);
+    setCreatePassportFile(null);
     setCreateModalOpen(true);
   };
 
@@ -293,6 +347,12 @@ export default function AdminUsersPage() {
       const json = await res.json();
 
       if (json.success) {
+        if (createProfilePhotoFile) {
+          await uploadFile(createProfilePhotoFile, json.user.id, "profile");
+        }
+        if (createPassportFile) {
+          await uploadFile(createPassportFile, json.user.id, "passport");
+        }
         setCreateFeedback({ type: "success", message: `Account created for ${json.user.email}.` });
         await fetchUsers();
         setTimeout(() => closeCreateModal(), 1200);
@@ -306,15 +366,23 @@ export default function AdminUsersPage() {
     }
   };
 
-  const filteredUsers = users.filter((user) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      (user.name && user.name.toLowerCase().includes(q)) ||
-      (user.email && user.email.toLowerCase().includes(q)) ||
-      (user.accountNumber && user.accountNumber.toLowerCase().includes(q))
-    );
-  });
+  const pendingCount = users.filter((u) => u.status === "PENDING_APPROVAL").length;
+
+  const filteredUsers = users
+    .filter((user) => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        (user.name && user.name.toLowerCase().includes(q)) ||
+        (user.email && user.email.toLowerCase().includes(q)) ||
+        (user.accountNumber && user.accountNumber.toLowerCase().includes(q))
+      );
+    })
+    .sort((a, b) => {
+      const aPending = a.status === "PENDING_APPROVAL" ? 0 : 1;
+      const bPending = b.status === "PENDING_APPROVAL" ? 0 : 1;
+      return aPending - bPending;
+    });
 
   if (loading) {
     return (
@@ -357,6 +425,14 @@ export default function AdminUsersPage() {
               {users.length} users
             </span>
           </div>
+          {pendingCount > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-sky-500/10 border border-sky-500/20">
+              <Clock className="w-4 h-4 text-sky-400" />
+              <span className="text-sm font-medium text-sky-400">
+                {pendingCount} pending approval
+              </span>
+            </div>
+          )}
           <button
             onClick={openCreateModal}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-apex-600 to-apex-500 hover:from-apex-500 hover:to-apex-400 text-white text-sm font-semibold transition-all duration-200 btn-shine shadow-lg shadow-apex-500/20"
@@ -424,16 +500,24 @@ export default function AdminUsersPage() {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-apex-500 to-emerald-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                          {user.name
-                            ? user.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase()
-                                .slice(0, 2)
-                            : "U"}
-                        </div>
+                        {user.profilePhoto ? (
+                          <img
+                            src={`/api/files/${user.profilePhoto}`}
+                            alt={user.name}
+                            className="w-9 h-9 rounded-full object-cover flex-shrink-0 ring-2 ring-apex-500/10"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-apex-500 to-emerald-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                            {user.name
+                              ? user.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .toUpperCase()
+                                  .slice(0, 2)
+                              : "U"}
+                          </div>
+                        )}
                         <div>
                           <p className="text-sm font-medium text-slate-200 group-hover:text-white transition-colors">
                             {user.name}
@@ -520,16 +604,24 @@ export default function AdminUsersPage() {
               {/* Drawer Header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-slate-700/40 bg-gradient-to-r from-slate-900 to-slate-800">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-apex-500 to-emerald-500 flex items-center justify-center text-white text-sm font-bold">
-                    {selectedUser.name
-                      ? selectedUser.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()
-                          .slice(0, 2)
-                      : "U"}
-                  </div>
+                  {selectedUser.profilePhoto ? (
+                    <img
+                      src={`/api/files/${selectedUser.profilePhoto}`}
+                      alt={selectedUser.name}
+                      className="w-11 h-11 rounded-full object-cover ring-2 ring-apex-500/20"
+                    />
+                  ) : (
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-apex-500 to-emerald-500 flex items-center justify-center text-white text-sm font-bold">
+                      {selectedUser.name
+                        ? selectedUser.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()
+                            .slice(0, 2)
+                        : "U"}
+                    </div>
+                  )}
                   <div>
                     <h2 className="text-lg font-semibold text-white">
                       {selectedUser.name}
@@ -580,6 +672,52 @@ export default function AdminUsersPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Quick approve/reject — always available, not just while pending */}
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => handleQuickStatus("ACTIVE")}
+                    disabled={saving || selectedUser.status === "ACTIVE"}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ThumbsUp className="w-4 h-4" />
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleQuickStatus("REJECTED")}
+                    disabled={saving || selectedUser.status === "REJECTED"}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                    Reject
+                  </button>
+                </div>
+                {selectedUser.status === "PENDING_APPROVAL" && (
+                  <p className="-mt-3 text-xs text-sky-400 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    This account is waiting on your review to unlock dashboard access.
+                  </p>
+                )}
+
+                {/* Passport / ID — admin-only view */}
+                {selectedUser.passportDocument && admin?.id && (
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                      Passport / ID Document
+                    </h3>
+                    <a
+                      href={`/api/files/${selectedUser.passportDocument}?requesterId=${admin.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 glass-light rounded-xl p-4 hover:bg-white/[0.04] transition-colors"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-apex-500/10 flex items-center justify-center shrink-0">
+                        <IdCard className="w-4 h-4 text-apex-400" />
+                      </div>
+                      <span className="text-sm text-apex-400">View uploaded document</span>
+                    </a>
+                  </div>
+                )}
 
                 {/* Accounts / Balances — editable */}
                 {selectedUser.accounts && selectedUser.accounts.length > 0 && (
@@ -701,6 +839,8 @@ export default function AdminUsersPage() {
                       <option value="ACTIVE">ACTIVE</option>
                       <option value="RESTRICTED">RESTRICTED</option>
                       <option value="SUSPENDED">SUSPENDED</option>
+                      <option value="PENDING_APPROVAL">PENDING_APPROVAL</option>
+                      <option value="REJECTED">REJECTED</option>
                     </select>
                   </div>
 
@@ -969,6 +1109,48 @@ export default function AdminUsersPage() {
                 </select>
                 <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               </div>
+            </div>
+
+            {/* Profile photo */}
+            <div>
+              <label htmlFor="createProfilePhoto" className="block text-sm font-medium text-slate-300 mb-1.5">
+                Profile Photo <span className="text-slate-500 font-normal">(optional)</span>
+              </label>
+              <label
+                htmlFor="createProfilePhoto"
+                className="flex items-center gap-3 px-4 py-3 bg-slate-800/60 border border-dashed border-slate-700/50 rounded-xl text-sm text-slate-400 hover:border-apex-500/40 hover:text-slate-300 cursor-pointer transition-all"
+              >
+                <Camera className="w-4 h-4 shrink-0" />
+                <span className="truncate">{createProfilePhotoFile ? createProfilePhotoFile.name : "Upload a photo (JPG, PNG, WEBP)"}</span>
+                <input
+                  id="createProfilePhoto"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => setCreateProfilePhotoFile(e.target.files?.[0] || null)}
+                />
+              </label>
+            </div>
+
+            {/* Passport / ID */}
+            <div>
+              <label htmlFor="createPassportDoc" className="block text-sm font-medium text-slate-300 mb-1.5">
+                Passport / ID Document <span className="text-slate-500 font-normal">(optional)</span>
+              </label>
+              <label
+                htmlFor="createPassportDoc"
+                className="flex items-center gap-3 px-4 py-3 bg-slate-800/60 border border-dashed border-slate-700/50 rounded-xl text-sm text-slate-400 hover:border-apex-500/40 hover:text-slate-300 cursor-pointer transition-all"
+              >
+                <IdCard className="w-4 h-4 shrink-0" />
+                <span className="truncate">{createPassportFile ? createPassportFile.name : "Upload for verification (JPG, PNG, or PDF)"}</span>
+                <input
+                  id="createPassportDoc"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  className="hidden"
+                  onChange={(e) => setCreatePassportFile(e.target.files?.[0] || null)}
+                />
+              </label>
             </div>
 
             {/* Feedback */}
