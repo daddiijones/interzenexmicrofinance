@@ -11,6 +11,7 @@
   "/api/admin/accounts/[id]/route": "app/api/admin/accounts/[id]/route.js",
   "/api/admin/transactions/[id]/route": "app/api/admin/transactions/[id]/route.js",
   "/api/admin/users/[id]/limits/route": "app/api/admin/users/[id]/limits/route.js",
+  "/api/admin/users/[id]/send-code/route": "app/api/admin/users/[id]/send-code/route.js",
   "/api/admin/users/route": "app/api/admin/users/route.js",
   "/api/auth/login/route": "app/api/auth/login/route.js",
   "/api/auth/register/route": "app/api/auth/register/route.js",

@@ -11,6 +11,7 @@
   "/api/admin/accounts/[id]/route": "/api/admin/accounts/[id]",
   "/api/admin/transactions/[id]/route": "/api/admin/transactions/[id]",
   "/api/admin/users/[id]/limits/route": "/api/admin/users/[id]/limits",
+  "/api/admin/users/[id]/send-code/route": "/api/admin/users/[id]/send-code",
   "/api/admin/users/route": "/api/admin/users",
   "/api/auth/login/route": "/api/auth/login",
   "/api/auth/register/route": "/api/auth/register",

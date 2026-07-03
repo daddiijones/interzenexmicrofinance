@@ -47,6 +47,14 @@
       "namedRegex": "^/api/admin/users/(?<nxtPid>[^/]+?)/limits(?:/)?$"
     },
     {
+      "page": "/api/admin/users/[id]/send-code",
+      "regex": "^/api/admin/users/([^/]+?)/send\\-code(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/users/(?<nxtPid>[^/]+?)/send\\-code(?:/)?$"
+    },
+    {
       "page": "/api/files/[type]/[filename]",
       "regex": "^/api/files/([^/]+?)/([^/]+?)(?:/)?$",
       "routeKeys": {
