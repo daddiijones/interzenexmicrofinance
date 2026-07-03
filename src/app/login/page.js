@@ -179,7 +179,7 @@ export default function LoginPage() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-apex-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-apex-500/25 group-hover:shadow-apex-500/40 transition-shadow">
               <Zap className="w-5 h-5 text-white" />
             </div>
-            <span className="text-2xl font-bold gradient-text">Apex Bank</span>
+            <span className="text-2xl font-bold gradient-text">Interzenex</span>
           </Link>
         </div>
 

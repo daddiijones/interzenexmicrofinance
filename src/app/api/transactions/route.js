@@ -156,7 +156,7 @@ export async function POST(request) {
       data: { balance: { decrement: amountInAccCurrency } }
     });
 
-    // Check if receiver account exists in our bank (Apex Bank)
+    // Check if receiver account exists in our bank (Interzenex Microfinance)
     let receiverAccount = null;
     let receiverId = null;
     let convertedAmount = transAmount;

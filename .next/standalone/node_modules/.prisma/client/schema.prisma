@@ -57,7 +57,7 @@ model Transaction {
   senderName            String?
   receiverId            Int?
   receiverAccountNumber String
-  receiverBank          String   @default("Apex Bank")
+  receiverBank          String   @default("Interzenex Microfinance")
   receiverName          String
   amount                Float
   currency              String   @default("USD")
