@@ -35,6 +35,7 @@
   "/dashboard/emails/page": "app/dashboard/emails/page.js",
   "/dashboard/history/page": "app/dashboard/history/page.js",
   "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/profile/page": "app/dashboard/profile/page.js",
   "/dashboard/support/page": "app/dashboard/support/page.js",
   "/dashboard/transfer/page": "app/dashboard/transfer/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",

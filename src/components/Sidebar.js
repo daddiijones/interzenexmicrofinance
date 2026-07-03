@@ -21,6 +21,7 @@ import {
   Menu,
   X,
   Receipt,
+  UserCircle,
 } from "lucide-react";
 
 const USER_NAV = [
@@ -30,6 +31,7 @@ const USER_NAV = [
   { label: "Cards", href: "/dashboard/cards", icon: CreditCard },
   { label: "Emails", href: "/dashboard/emails", icon: Mail },
   { label: "Support", href: "/dashboard/support", icon: HelpCircle },
+  { label: "Profile", href: "/dashboard/profile", icon: UserCircle },
 ];
 
 const ADMIN_NAV = [
@@ -80,7 +82,19 @@ export default function Sidebar({ role = "USER", currentPath }) {
           </div>
           <span className="text-sm font-bold gradient-text">Interzenex Microfinance</span>
         </div>
-        <div className="w-9" />
+        {user?.profilePhoto ? (
+          <img
+            src={`/api/files/${user.profilePhoto}`}
+            alt={user.name || "Profile"}
+            className="w-9 h-9 rounded-full object-cover shrink-0 ring-2 ring-apex-500/20"
+          />
+        ) : (
+          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-apex-500 to-emerald-500 text-white text-xs font-bold shrink-0">
+            {user?.name
+              ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+              : "U"}
+          </div>
+        )}
       </div>
 
       {/* Mobile backdrop */}

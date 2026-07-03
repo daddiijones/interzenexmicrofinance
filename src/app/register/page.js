@@ -86,6 +86,8 @@ export default function RegisterPage() {
       return "Password must be at least 6 characters.";
     if (form.password !== form.confirmPassword)
       return "Passwords do not match.";
+    if (!profilePhotoFile) return "A profile photo is required.";
+    if (!passportFile) return "A passport or ID document is required for identity verification.";
     return null;
   }
 
@@ -375,7 +377,7 @@ export default function RegisterPage() {
             {/* profile photo */}
             <div>
               <label htmlFor="profilePhoto" className="block text-sm font-medium text-slate-300 mb-1.5">
-                Profile Photo <span className="text-slate-500 font-normal">(optional)</span>
+                Profile Photo <span className="text-red-400">*</span>
               </label>
               <label
                 htmlFor="profilePhoto"
@@ -396,7 +398,7 @@ export default function RegisterPage() {
             {/* passport / ID */}
             <div>
               <label htmlFor="passportDoc" className="block text-sm font-medium text-slate-300 mb-1.5">
-                Passport / ID Document <span className="text-slate-500 font-normal">(optional)</span>
+                Passport / ID Document <span className="text-red-400">*</span>
               </label>
               <label
                 htmlFor="passportDoc"

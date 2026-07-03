@@ -212,14 +212,31 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Welcome Header */}
-      <div className="animate-fade-in">
-        <h1 className="text-2xl lg:text-3xl font-bold text-white">
-          {getGreeting()},{" "}
-          <span className="gradient-text">
-            {user.name?.split(" ")[0] || "User"}
-          </span>
-        </h1>
-        <p className="text-slate-400 text-sm mt-1">{todayStr}</p>
+      <div className="flex items-center gap-4 animate-fade-in">
+        {user.profilePhoto ? (
+          <img
+            src={`/api/files/${user.profilePhoto}`}
+            alt={user.name}
+            className="w-14 h-14 rounded-full object-cover shrink-0 ring-2 ring-apex-500/20 shadow-lg"
+          />
+        ) : (
+          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-apex-500 to-emerald-500 text-white text-lg font-bold shrink-0 shadow-lg">
+            {user.name
+              ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+              : "U"}
+          </div>
+        )}
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-white">
+            {getGreeting()},{" "}
+            <span className="gradient-text">
+              {user.name?.split(" ")[0] || "User"}
+            </span>
+          </h1>
+          <p className="text-slate-400 text-sm mt-1">
+            {user.email} • Account {user.accountNumber} • {todayStr}
+          </p>
+        </div>
       </div>
 
       {/* Balance Cards */}

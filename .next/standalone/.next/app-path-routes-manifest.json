@@ -35,6 +35,7 @@
   "/dashboard/emails/page": "/dashboard/emails",
   "/dashboard/history/page": "/dashboard/history",
   "/dashboard/page": "/dashboard",
+  "/dashboard/profile/page": "/dashboard/profile",
   "/dashboard/support/page": "/dashboard/support",
   "/dashboard/transfer/page": "/dashboard/transfer",
   "/favicon.ico/route": "/favicon.ico",

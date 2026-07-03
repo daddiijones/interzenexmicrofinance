@@ -260,6 +260,12 @@
       "namedRegex": "^/dashboard/history(?:/)?$"
     },
     {
+      "page": "/dashboard/profile",
+      "regex": "^/dashboard/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/profile(?:/)?$"
+    },
+    {
       "page": "/dashboard/support",
       "regex": "^/dashboard/support(?:/)?$",
       "routeKeys": {},

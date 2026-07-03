@@ -29,6 +29,13 @@ export async function POST(request) {
       }, { status: 403 });
     }
 
+    if (user.status === "REJECTED") {
+      return NextResponse.json({
+        success: false,
+        error: "Your account application was not approved. Please contact support if you believe this is a mistake."
+      }, { status: 403 });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return NextResponse.json({ success: false, error: "Invalid credentials." }, { status: 401 });

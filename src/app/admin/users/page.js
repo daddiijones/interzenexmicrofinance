@@ -120,6 +120,12 @@ export default function AdminUsersPage() {
   const [createProfilePhotoFile, setCreateProfilePhotoFile] = useState(null);
   const [createPassportFile, setCreatePassportFile] = useState(null);
 
+  // Resend approval code
+  const [sendCodeOpen, setSendCodeOpen] = useState(false);
+  const [sendCodeLabel, setSendCodeLabel] = useState("Approval Code");
+  const [sendingCode, setSendingCode] = useState(false);
+  const [sendCodeFeedback, setSendCodeFeedback] = useState(null);
+
   const fetchUsers = useCallback(async () => {
     if (!admin?.id) return;
     try {
@@ -176,6 +182,9 @@ export default function AdminUsersPage() {
     setAccountBalances(balances);
     setFeedback(null);
     setBalanceFeedback(null);
+    setSendCodeOpen(false);
+    setSendCodeLabel("Approval Code");
+    setSendCodeFeedback(null);
     setDrawerOpen(true);
   };
 
@@ -251,6 +260,33 @@ export default function AdminUsersPage() {
       setFeedback({ type: "error", message: err.message });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSendCode = async () => {
+    if (!admin?.id || !selectedUser) return;
+    setSendingCode(true);
+    setSendCodeFeedback(null);
+    try {
+      const res = await fetch(`/api/admin/users/${selectedUser.id}/send-code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminId: admin.id, codeLabel: sendCodeLabel }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setSendCodeFeedback({ type: "success", message: json.message });
+        setTimeout(() => {
+          setSendCodeOpen(false);
+          setSendCodeFeedback(null);
+        }, 1800);
+      } else {
+        setSendCodeFeedback({ type: "error", message: json.error || "Failed to send code." });
+      }
+    } catch (err) {
+      setSendCodeFeedback({ type: "error", message: err.message });
+    } finally {
+      setSendingCode(false);
     }
   };
 
@@ -917,9 +953,23 @@ export default function AdminUsersPage() {
 
                   {/* Approval Code */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                      Approval Code
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-medium text-slate-400">
+                        Approval Code
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSendCodeLabel("Approval Code");
+                          setSendCodeFeedback(null);
+                          setSendCodeOpen(true);
+                        }}
+                        disabled={!form.approvalCode}
+                        className="text-[11px] font-medium text-apex-400 hover:text-apex-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Resend to user
+                      </button>
+                    </div>
                     <input
                       type="text"
                       value={form.approvalCode}
@@ -1189,6 +1239,99 @@ export default function AdminUsersPage() {
               )}
             </button>
           </form>
+        </div>
+      </div>
+
+      {/* Send Code Modal */}
+      <div
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center px-4 transition-opacity duration-300 ${
+          sendCodeOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setSendCodeOpen(false)}
+      >
+        <div
+          className={`w-full max-w-sm glass rounded-2xl shadow-2xl shadow-black/30 transform transition-all duration-300 ${
+            sendCodeOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-700/40">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Send Code</h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Emails {selectedUser?.name}&apos;s existing code — doesn&apos;t generate a new one
+              </p>
+            </div>
+            <button
+              onClick={() => setSendCodeOpen(false)}
+              className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all duration-200"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="px-6 py-5 space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">Code</label>
+              <div className="px-4 py-2.5 rounded-xl bg-slate-800/40 border border-slate-700/40 text-sm text-slate-300 font-mono tracking-wider">
+                {form.approvalCode || "—"}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Name of code
+              </label>
+              <input
+                type="text"
+                value={sendCodeLabel}
+                onChange={(e) => setSendCodeLabel(e.target.value)}
+                placeholder="e.g. Approval Code, Authorization Code"
+                maxLength={40}
+                autoFocus
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+              />
+              <p className="mt-1.5 text-[11px] text-slate-600">
+                This is what the email calls it — e.g. &ldquo;Your Authorization Code is …&rdquo;
+              </p>
+            </div>
+
+            {sendCodeFeedback && (
+              <div
+                className={`rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2 animate-fade-in ${
+                  sendCodeFeedback.type === "success"
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "bg-red-500/10 text-red-400 border border-red-500/20"
+                }`}
+              >
+                {sendCodeFeedback.type === "success" ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                )}
+                {sendCodeFeedback.message}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handleSendCode}
+              disabled={sendingCode || !sendCodeLabel.trim()}
+              className="w-full flex items-center justify-center gap-2 py-3 px-6 text-sm font-semibold text-white bg-gradient-to-r from-apex-500 to-emerald-500 rounded-xl hover:shadow-lg hover:shadow-apex-500/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed btn-shine"
+            >
+              {sendingCode ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Sending…
+                </>
+              ) : (
+                <>
+                  <Mail className="w-4 h-4" />
+                  Send Email
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

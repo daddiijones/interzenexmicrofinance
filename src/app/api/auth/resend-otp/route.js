@@ -18,6 +18,10 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: "Invalid session. Please log in again." }, { status: 404 });
     }
 
+    if (user.status === "SUSPENDED" || user.status === "REJECTED") {
+      return NextResponse.json({ success: false, error: "This account cannot sign in. Please contact support." }, { status: 403 });
+    }
+
     const remaining = cooldownRemaining(user.otpLastSentAt);
     if (remaining > 0) {
       return NextResponse.json({
