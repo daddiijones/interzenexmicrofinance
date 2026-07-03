@@ -300,7 +300,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="relative mt-6">
+                <div className="relative mt-6 flex flex-col items-center text-center">
                   <div className="flex items-center gap-2">
                     <p className="text-xs text-white/70">Available Balance</p>
                     <button
