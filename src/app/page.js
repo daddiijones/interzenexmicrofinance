@@ -212,28 +212,46 @@ const securityFeatures = [
 const testimonials = [
   {
     quote:
-      "Interzenex Microfinance made it possible for my agency to pay contractors in twelve countries without the usual wire delays or surprise fees.",
-    name: "Amara Okafor",
-    role: "Agency Owner, Lagos",
+      "My transfer request was handled the same day, and the support team walked me through every step. It's rare to get that level of care from a bank.",
+    name: "Sarah Morris",
+    role: "Verified Customer, Manchester",
     avatar:
-      "https://images.unsplash.com/photo-1611432579402-7037e3e2c1e4?fm=jpg&q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1573496527892-904f897eb744?fm=jpg&q=80&w=256&auto=format&fit=crop",
   },
   {
     quote:
-      "Switching from my old bank saved me hundreds of dollars a month in international transfer fees alone.",
-    name: "Daniel Kowalski",
-    role: "Freelance Consultant, Toronto",
+      "Competitive rates and a banking experience that actually feels premium. I moved my company accounts over and haven't looked back.",
+    name: "John Davis",
+    role: "Business Owner, Austin",
     avatar:
       "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?fm=jpg&q=80&w=256&auto=format&fit=crop",
   },
   {
     quote:
-      "The OTP login and Approval Code verification give me real peace of mind — it actually feels like a bank that takes security seriously.",
-    name: "Priya Ramesh",
-    role: "Product Manager, Singapore",
+      "The mobile app makes managing my accounts effortless, and every time I've needed support, someone real answered quickly.",
+    name: "Emily Johnson",
+    role: "Personal Banking, Sydney",
     avatar:
-      "https://images.unsplash.com/photo-1573496527892-904f897eb744?fm=jpg&q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1611432579402-7037e3e2c1e4?fm=jpg&q=80&w=256&auto=format&fit=crop",
   },
+];
+
+/* ──────────────────────── account & loan rates ──────────────────────── */
+const bankRates = [
+  { rate: "3.75%", unit: "APY*", label: "High Yield Savings", tag: "FEATURED", desc: "Watch your balance grow faster with one of the strongest savings rates on the market." },
+  { rate: "3.65%", unit: "APY*", label: "18-Month Certificate", tag: "SAVINGS", desc: "Lock in a fixed rate for 18 months and earn guaranteed returns on your deposit." },
+  { rate: "4.00%", unit: "APR*", label: "Credit Cards", tag: "CREDIT", desc: "Everyday spending power with a rate that stays competitive, not introductory-only." },
+  { rate: "15.49%", unit: "APR*", label: "Personal & Auto Loans", tag: "LENDING", desc: "Straightforward lending with rates based on your profile, not hidden fees." },
+];
+
+/* ──────────────────────── services grid ──────────────────────── */
+const bankServices = [
+  { icon: Wallet, title: "Deposit Accounts", description: "High-yield savings and everyday checking accounts built for steady, effortless growth." },
+  { icon: CreditCard, title: "Credit Cards", description: "Find the right card for how you spend, with transparent rates and real-time controls." },
+  { icon: BarChart3, title: "Loans", description: "Personal, auto, and home loans with clear terms and rates tailored to your goals." },
+  { icon: Handshake, title: "Business Banking", description: "Accounts, payroll, and lending tools built to help your business operate and grow." },
+  { icon: TrendingUp, title: "Wealth & Retirement", description: "Investment and retirement planning support from people who know the long game." },
+  { icon: Users, title: "About Interzenex", description: "Learn about our mission, our team, and our commitment to member-first banking." },
 ];
 
 /* ──────────────────────── mobile banking highlights ──────────────────────── */
@@ -399,15 +417,13 @@ export default function LandingPage() {
               <Lock className="w-3.5 h-3.5 text-emerald-400" />
               <span>SOC 2 Type II Certified — Bank-level security</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08]">
-              Banking{" "}
-              <span className="gradient-text">Without</span>
-              <br />
-              Boundaries
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]">
+              Inter Zenex{" "}
+              <span className="gradient-text">Microfinance Bank</span>
             </h1>
             <p className="mt-6 text-base sm:text-lg text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Multi-currency accounts, instant global transfers, and AI-powered
-              financial insights — all in one premium digital banking platform.
+              We do banking differently. We believe that people come first,
+              and that everyone deserves a great experience every step of the way.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
               <Link
@@ -421,7 +437,7 @@ export default function LandingPage() {
                 href="/login"
                 className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-medium text-slate-200 rounded-xl border border-white/20 hover:border-white/30 hover:bg-white/5 transition-all"
               >
-                Login
+                Login to Banking
               </Link>
             </div>
             <div className="mt-10 flex items-center gap-6 justify-center lg:justify-start text-xs text-slate-400">
@@ -585,6 +601,40 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ───────────────── SERVICES ───────────────── */}
+      <section id="services" className="relative z-10 py-20 md:py-32 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16 animate-fade-in">
+            <p className="text-sm font-medium text-apex-400 tracking-widest uppercase mb-3">
+              Our Services
+            </p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold">
+              How Can We Help{" "}
+              <span className="gradient-text">You Today?</span>
+            </h2>
+            <p className="mt-4 text-slate-400 max-w-2xl mx-auto">
+              Comprehensive banking solutions tailored to wherever you are in
+              your financial journey.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {bankServices.map((s) => {
+              const Icon = s.icon;
+              return (
+                <div key={s.title} className="glass card-hover rounded-2xl p-6 md:p-8 group">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-apex-500/20 to-emerald-500/20 flex items-center justify-center mb-5 group-hover:from-apex-500/30 group-hover:to-emerald-500/30 transition-colors">
+                    <Icon className="w-6 h-6 text-apex-400 group-hover:text-apex-300 transition-colors" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 text-slate-100">{s.title}</h3>
+                  <p className="text-sm text-slate-400 leading-relaxed">{s.description}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* ───────────────── HOW IT WORKS ───────────────── */}
       <section id="how-it-works" className="relative z-10 py-20 md:py-32 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -678,6 +728,52 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ───────────────── ACCOUNT & LOAN RATES ───────────────── */}
+      <section className="relative z-10 py-20 md:py-32 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16 animate-fade-in">
+            <p className="text-sm font-medium text-apex-400 tracking-widest uppercase mb-3">
+              Rates
+            </p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold">
+              Competitive Rates,{" "}
+              <span className="gradient-text">Built to Help You Grow</span>
+            </h2>
+            <p className="mt-4 text-slate-400 max-w-2xl mx-auto">
+              Straightforward pricing on savings, credit, and lending — no
+              teaser rates that vanish after month one.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {bankRates.map((r) => (
+              <div
+                key={r.label}
+                className={`relative glass card-hover rounded-2xl p-6 md:p-8 ${
+                  r.tag === "FEATURED" ? "border border-apex-500/30" : ""
+                }`}
+              >
+                {r.tag === "FEATURED" && (
+                  <span className="absolute -top-3 left-6 px-2.5 py-1 rounded-full bg-gradient-to-r from-apex-500 to-emerald-500 text-[10px] font-bold text-white tracking-wide">
+                    FEATURED
+                  </span>
+                )}
+                <p className="text-3xl sm:text-4xl font-bold gradient-text">
+                  {r.rate}
+                  <span className="text-sm font-semibold text-slate-500 ml-1">{r.unit}</span>
+                </p>
+                <p className="mt-3 text-sm font-semibold text-slate-100">{r.label}</p>
+                <p className="mt-2 text-xs text-slate-500 uppercase tracking-wider">{r.tag}</p>
+                <p className="mt-4 text-sm text-slate-400 leading-relaxed">{r.desc}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-6 text-center text-xs text-slate-500">
+            *Annual Percentage Yield / Annual Percentage Rate. Rates subject to change. Terms and conditions apply.
+          </p>
         </div>
       </section>
 
@@ -900,48 +996,52 @@ export default function LandingPage() {
       {/* ───────────────── FOOTER ───────────────── */}
       <footer className="relative z-10 border-t border-white/5 py-12 md:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 mb-12">
             {/* brand */}
-            <div className="col-span-2 md:col-span-1">
+            <div className="col-span-2 sm:col-span-3 lg:col-span-2">
               <Link href="/" className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-apex-500 to-emerald-500 flex items-center justify-center">
                   <Zap className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-lg font-bold gradient-text">Interzenex</span>
+                <span className="text-lg font-bold gradient-text">Interzenex Microfinance</span>
               </Link>
-              <p className="text-sm text-slate-500 leading-relaxed max-w-xs">
-                Modern digital banking for the global citizen. Secure, fast, and
-                intelligent.
+              <p className="text-sm text-slate-500 leading-relaxed max-w-sm">
+                Building financial strength together through personalized banking
+                and honest, transparent service. Your trusted partner in global
+                financial growth.
               </p>
             </div>
 
-            {/* links */}
+            {/* quick links */}
             <div>
-              <h4 className="text-sm font-semibold text-slate-200 mb-4">Product</h4>
+              <h4 className="text-sm font-semibold text-slate-200 mb-4">Quick Links</h4>
               <ul className="space-y-2.5 text-sm text-slate-500">
-                <li><a href="/features" className="hover:text-slate-300 transition-colors">Features</a></li>
-                <li><a href="/security" className="hover:text-slate-300 transition-colors">Security</a></li>
-                <li><a href="/pricing" className="hover:text-slate-300 transition-colors">Pricing</a></li>
-                <li><a href="/api-page" className="hover:text-slate-300 transition-colors">API</a></li>
+                <li><a href="/about" className="hover:text-slate-300 transition-colors">About Us</a></li>
+                <li><a href="/services" className="hover:text-slate-300 transition-colors">Services</a></li>
+                <li><a href="/grants-aid" className="hover:text-slate-300 transition-colors">Grants & Aid</a></li>
+                <li><a href="/contact" className="hover:text-slate-300 transition-colors">Contact</a></li>
               </ul>
             </div>
+
+            {/* services */}
             <div>
-              <h4 className="text-sm font-semibold text-slate-200 mb-4">Company</h4>
+              <h4 className="text-sm font-semibold text-slate-200 mb-4">Services</h4>
               <ul className="space-y-2.5 text-sm text-slate-500">
-                <li><a href="/about" className="hover:text-slate-300 transition-colors">About</a></li>
-                <li><a href="/careers" className="hover:text-slate-300 transition-colors">Careers</a></li>
-                <li><a href="/blog" className="hover:text-slate-300 transition-colors">Blog</a></li>
-                <li><a href="/press" className="hover:text-slate-300 transition-colors">Press</a></li>
-                <li><a href="/contact" className="hover:text-slate-300 transition-colors">Contact Us</a></li>
+                <li><a href="/personal-banking" className="hover:text-slate-300 transition-colors">Personal Banking</a></li>
+                <li><a href="/business-banking" className="hover:text-slate-300 transition-colors">Business Banking</a></li>
+                <li><a href="/loans-credit" className="hover:text-slate-300 transition-colors">Loans & Credit</a></li>
+                <li><a href="/cards" className="hover:text-slate-300 transition-colors">Cards</a></li>
               </ul>
             </div>
+
+            {/* member services */}
             <div>
-              <h4 className="text-sm font-semibold text-slate-200 mb-4">Legal</h4>
+              <h4 className="text-sm font-semibold text-slate-200 mb-4">Member Services</h4>
               <ul className="space-y-2.5 text-sm text-slate-500">
-                <li><a href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</a></li>
-                <li><a href="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</a></li>
-                <li><a href="/cookies" className="hover:text-slate-300 transition-colors">Cookie Policy</a></li>
-                <li><a href="/licenses" className="hover:text-slate-300 transition-colors">Licenses</a></li>
+                <li><a href="/online-banking" className="hover:text-slate-300 transition-colors">Online Banking</a></li>
+                <li><a href="/mobile-app" className="hover:text-slate-300 transition-colors">Mobile App</a></li>
+                <li><a href="/atm-locations" className="hover:text-slate-300 transition-colors">ATM Locations</a></li>
+                <li><a href="/security" className="hover:text-slate-300 transition-colors">Security Center</a></li>
               </ul>
             </div>
           </div>
@@ -949,7 +1049,12 @@ export default function LandingPage() {
           <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs text-slate-600">
               © {new Date().getFullYear()} interzenexmicrofinance.online. All rights reserved. FDIC
-              Insured.
+              Insured. {" "}
+              <a href="/privacy" className="hover:text-slate-400 transition-colors">Privacy</a>
+              {" · "}
+              <a href="/terms" className="hover:text-slate-400 transition-colors">Terms</a>
+              {" · "}
+              <a href="/cookies" className="hover:text-slate-400 transition-colors">Cookies</a>
             </p>
             <div className="flex items-center gap-4">
               <a href="/contact" className="text-slate-600 hover:text-slate-300 transition-colors">

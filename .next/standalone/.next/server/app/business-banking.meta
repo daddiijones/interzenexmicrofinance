@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/business-banking/layout,_N_T_/business-banking/page,_N_T_/business-banking"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/business-banking/__PAGE__",
+    "/business-banking",
+    "/_index",
+    "/_head"
+  ]
+}

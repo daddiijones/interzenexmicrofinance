@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/online-banking/layout,_N_T_/online-banking/page,_N_T_/online-banking"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/online-banking/__PAGE__",
+    "/online-banking",
+    "/_index",
+    "/_head"
+  ]
+}
