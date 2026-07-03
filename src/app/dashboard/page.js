@@ -14,6 +14,13 @@ import {
   CreditCard,
   Clock,
   ChevronRight,
+  ChevronLeft,
+  Plus,
+  Download,
+  Grid3x3,
+  Eye,
+  EyeOff,
+  Users,
 } from "lucide-react";
 import {
   AreaChart,
@@ -91,6 +98,8 @@ export default function DashboardPage() {
   const user = useAuthUser();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeAccountIdx, setActiveAccountIdx] = useState(0);
+  const [balanceHidden, setBalanceHidden] = useState(false);
 
   // Refresh account balances from the server on every visit so the dashboard
   // always reflects the latest state after any transfers made elsewhere.
@@ -182,6 +191,27 @@ export default function DashboardPage() {
     return transactions.slice(0, 8);
   }, [transactions]);
 
+  // Unique recipients from past outgoing transfers, most recent first
+  const recentRecipients = useMemo(() => {
+    if (!user?.accounts) return [];
+    const userAccountNumbers = user.accounts.map((a) => a.accountNumber);
+    const seen = new Set();
+    const list = [];
+    for (const tx of transactions) {
+      if (tx.type !== "TRANSFER" || !userAccountNumbers.includes(tx.senderAccountNumber)) continue;
+      const key = tx.receiverAccountNumber;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      list.push({
+        name: tx.receiverName,
+        accountNumber: tx.receiverAccountNumber,
+        bank: tx.receiverBank,
+      });
+      if (list.length >= 4) break;
+    }
+    return list;
+  }, [transactions, user]);
+
   // Determine if transaction is sent or received
   function getTransactionDirection(tx) {
     if (!user?.accounts) return "received";
@@ -239,92 +269,159 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Balance Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {accounts.map((account, idx) => {
-          const config = ACCOUNT_CONFIG[account.type] || ACCOUNT_CONFIG.CHECKING;
-          const Icon = config.icon;
-          return (
-            <div
-              key={account.id}
-              className="glass rounded-2xl p-5 card-hover animate-slide-up"
-              style={{ animationDelay: `${idx * 100}ms`, animationFillMode: "both" }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-xl ${config.bgAccent}`}
-                >
-                  <Icon className={`w-5 h-5 ${config.accent}`} />
+      {/* Swipeable Balance Card */}
+      {accounts.length > 0 && (
+        <div className="animate-slide-up">
+          {(() => {
+            const account = accounts[activeAccountIdx] || accounts[0];
+            const config = ACCOUNT_CONFIG[account.type] || ACCOUNT_CONFIG.CHECKING;
+            return (
+              <div
+                className={`relative overflow-hidden rounded-3xl p-6 sm:p-7 bg-gradient-to-br ${config.gradient} shadow-xl ${config.shadow}`}
+              >
+                {/* decorative glow */}
+                <div className="pointer-events-none absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
+                <div className="pointer-events-none absolute -bottom-14 -left-8 w-40 h-40 rounded-full bg-black/10 blur-2xl" />
+
+                <div className="relative flex items-start justify-between">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-white/70">
+                      Interzenex Microfinance
+                    </p>
+                    <p className="text-sm text-white/90 mt-0.5">{user.name}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-white/70">
+                      {config.label}
+                    </p>
+                    <p className="text-sm text-white/90 mt-0.5 font-mono">
+                      •••• {account.accountNumber?.slice(-4) || "0000"}
+                    </p>
+                  </div>
                 </div>
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                  {account.currency}
-                </span>
+
+                <div className="relative mt-6">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-white/70">Available Balance</p>
+                    <button
+                      onClick={() => setBalanceHidden((v) => !v)}
+                      className="text-white/70 hover:text-white transition-colors"
+                      aria-label={balanceHidden ? "Show balance" : "Hide balance"}
+                    >
+                      {balanceHidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                  <p className="text-3xl sm:text-4xl font-bold text-white tracking-tight mt-1">
+                    {balanceHidden ? "••••••" : formatCurrency(account.balance, account.currency)}
+                  </p>
+                </div>
+
+                <div className="relative mt-6 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-xs text-white/80">
+                    <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse-soft" />
+                    {user.status === "ACTIVE" ? "Active" : user.status}
+                  </span>
+                  <span className="text-xs text-white/60">
+                    Updated {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </span>
+                </div>
               </div>
-              <p className="text-xs text-slate-500 font-medium mb-1">
-                {config.label}
-              </p>
-              <p className="text-2xl font-bold text-white tracking-tight">
-                {formatCurrency(account.balance, account.currency)}
-              </p>
-              <p className="text-[11px] text-slate-600 mt-2 font-mono">
-                •••• {account.accountNumber?.slice(-4) || "0000"}
-              </p>
+            );
+          })()}
+
+          {/* Dot indicators + swipe hint */}
+          {accounts.length > 1 && (
+            <div className="flex flex-col items-center gap-2 mt-4">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveAccountIdx((i) => (i - 1 + accounts.length) % accounts.length)}
+                  className="text-slate-600 hover:text-slate-300 transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                {accounts.map((acc, i) => (
+                  <button
+                    key={acc.id}
+                    onClick={() => setActiveAccountIdx(i)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      i === activeAccountIdx ? "w-6 bg-apex-400" : "w-1.5 bg-slate-700"
+                    }`}
+                    aria-label={`Show ${acc.type} account`}
+                  />
+                ))}
+                <button
+                  onClick={() => setActiveAccountIdx((i) => (i + 1) % accounts.length)}
+                  className="text-slate-600 hover:text-slate-300 transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-[11px] text-slate-600">Tap a dot to switch between accounts</p>
             </div>
+          )}
+        </div>
+      )}
+      {accounts.length === 0 && (
+        <div className="glass rounded-2xl p-8 text-center">
+          <p className="text-slate-400 text-sm">No accounts found.</p>
+        </div>
+      )}
+
+      {/* Action Row */}
+      <div className="grid grid-cols-4 gap-3 animate-slide-up" style={{ animationDelay: "200ms", animationFillMode: "both" }}>
+        {[
+          { label: "Send", icon: Send, href: "/dashboard/transfer", accent: "text-apex-400", bg: "bg-apex-500/10" },
+          { label: "Receive", icon: Download, href: "/dashboard/transfer#receive", accent: "text-emerald-400", bg: "bg-emerald-500/10" },
+          { label: "Cards", icon: CreditCard, href: "/dashboard/cards", accent: "text-purple-400", bg: "bg-purple-500/10" },
+          { label: "More", icon: Grid3x3, href: "/dashboard/history", accent: "text-slate-300", bg: "bg-slate-500/10" },
+        ].map((action) => {
+          const Icon = action.icon;
+          return (
+            <Link key={action.label} href={action.href} className="flex flex-col items-center gap-2 group">
+              <div className={`flex items-center justify-center w-14 h-14 rounded-2xl ${action.bg} group-hover:scale-105 transition-transform`}>
+                <Icon className={`w-5 h-5 ${action.accent}`} />
+              </div>
+              <span className="text-xs font-medium text-slate-300">{action.label}</span>
+            </Link>
           );
         })}
-        {/* If user has fewer than 3 accounts, show placeholder cards */}
-        {accounts.length === 0 && (
-          <div className="col-span-3 glass rounded-2xl p-8 text-center">
-            <p className="text-slate-400 text-sm">No accounts found.</p>
-          </div>
-        )}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-slide-up" style={{ animationDelay: "300ms", animationFillMode: "both" }}>
-        <Link
-          href="/dashboard/transfer"
-          className="glass-light rounded-2xl p-5 flex items-center gap-4 card-hover group"
-        >
-          <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-apex-500/10 group-hover:bg-apex-500/20 transition-colors">
-            <Send className="w-5 h-5 text-apex-400" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white">Send Money</p>
-            <p className="text-xs text-slate-500">Transfer funds instantly</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
-        </Link>
-
-        <Link
-          href="/dashboard/cards"
-          className="glass-light rounded-2xl p-5 flex items-center gap-4 card-hover group"
-        >
-          <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-emerald-500/10 group-hover:bg-emerald-500/20 transition-colors">
-            <CreditCard className="w-5 h-5 text-emerald-400" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white">View Cards</p>
-            <p className="text-xs text-slate-500">Manage your cards</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
-        </Link>
-
-        <Link
-          href="/dashboard/history"
-          className="glass-light rounded-2xl p-5 flex items-center gap-4 card-hover group"
-        >
-          <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-            <Clock className="w-5 h-5 text-purple-400" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white">
-              Transaction History
-            </p>
-            <p className="text-xs text-slate-500">View all transactions</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
-        </Link>
+      {/* Quick Transfer */}
+      <div className="animate-slide-up" style={{ animationDelay: "300ms", animationFillMode: "both" }}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-slate-200">Quick Transfer</h2>
+          <Link href="/dashboard/history" className="text-xs text-apex-400 hover:text-apex-300 font-medium transition-colors">
+            View All
+          </Link>
+        </div>
+        <div className="flex items-center gap-4 overflow-x-auto pb-1">
+          <Link href="/dashboard/transfer" className="flex flex-col items-center gap-2 shrink-0">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full border-2 border-dashed border-slate-700 text-slate-500 hover:border-apex-500/50 hover:text-apex-400 transition-colors">
+              <Plus className="w-5 h-5" />
+            </div>
+            <span className="text-[11px] text-slate-500">Add New</span>
+          </Link>
+          {recentRecipients.length > 0 ? (
+            recentRecipients.map((r) => (
+              <Link
+                key={r.accountNumber}
+                href="/dashboard/transfer"
+                className="flex flex-col items-center gap-2 shrink-0 max-w-[72px]"
+              >
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-apex-500/30 to-emerald-500/30 text-white text-sm font-bold">
+                  {r.name ? r.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "?"}
+                </div>
+                <span className="text-[11px] text-slate-400 truncate w-full text-center">{r.name?.split(" ")[0]}</span>
+              </Link>
+            ))
+          ) : (
+            <div className="flex items-center gap-2 text-xs text-slate-600 shrink-0">
+              <Users className="w-4 h-4" />
+              No saved beneficiaries yet
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Spending Chart + Recent Transactions */}

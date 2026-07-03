@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
+import BottomTabBar from "@/components/BottomTabBar";
 import { useAuthUser, setAuthUser, clearAuthUser } from "@/lib/useAuthUser";
 import { Clock, ShieldCheck, MessageCircle, ShieldOff } from "lucide-react";
 
@@ -133,9 +134,10 @@ export default function DashboardLayout({ children }) {
   return (
     <div className="flex h-screen overflow-hidden bg-slate-950">
       <Sidebar role="USER" />
-      <main className="flex-1 h-screen overflow-y-auto pt-14 md:pt-0">
+      <main className="flex-1 h-screen overflow-y-auto pt-14 md:pt-0 pb-20 md:pb-0">
         <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
+      <BottomTabBar />
     </div>
   );
 }

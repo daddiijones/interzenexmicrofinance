@@ -25,6 +25,8 @@ import {
   Banknote,
   Landmark,
   Plane,
+  Share2,
+  Printer,
 } from "lucide-react";
 
 /* ─── Processing Animation Steps ─── */
@@ -187,6 +189,7 @@ function maskAccountNumber(num) {
 /* ─── Success Modal ─── */
 function SuccessModal({ transaction, onClose }) {
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(transaction.id?.toString() || "");
@@ -194,20 +197,37 @@ function SuccessModal({ transaction, onClose }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleShare = async () => {
+    const text = `Transfer Successful\n${formatCurrency(transaction.amount, transaction.currency)} to ${transaction.receiverName}\nRef: INTE-${transaction.id}\n${formatDateTime(transaction.createdAt)}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Transfer Receipt", text });
+        return;
+      } catch {
+        // user cancelled or share failed — fall through to clipboard
+      }
+    }
+    navigator.clipboard.writeText(text);
+    setShared(true);
+    setTimeout(() => setShared(false), 2000);
+  };
+
+  const handlePrint = () => window.print();
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:static print:block print:p-0">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm print:hidden"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="glass relative z-10 w-full max-w-md rounded-2xl p-8 animate-slide-up">
+      <div id="receipt-content" className="glass relative z-10 w-full max-w-md rounded-2xl p-8 animate-slide-up print:shadow-none print:bg-white print:text-black print:max-w-full print:rounded-none">
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors print:hidden"
         >
           <X className="w-5 h-5" />
         </button>
@@ -215,22 +235,22 @@ function SuccessModal({ transaction, onClose }) {
         {/* Animated Checkmark */}
         <div className="flex flex-col items-center mb-6">
           <div className="relative mb-4">
-            <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center animate-pulse-soft">
-              <div className="w-14 h-14 rounded-full bg-emerald-500/30 flex items-center justify-center">
-                <CheckCircle2 className="w-10 h-10 text-emerald-400 animate-fade-in" />
+            <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center animate-pulse-soft print:bg-emerald-100">
+              <div className="w-14 h-14 rounded-full bg-emerald-500/30 flex items-center justify-center print:bg-emerald-200">
+                <CheckCircle2 className="w-10 h-10 text-emerald-400 animate-fade-in print:text-emerald-600" />
               </div>
             </div>
             {/* Glow ring */}
-            <div className="absolute inset-0 rounded-full bg-emerald-400/10 blur-xl" />
+            <div className="absolute inset-0 rounded-full bg-emerald-400/10 blur-xl print:hidden" />
           </div>
-          <h2 className="text-2xl font-bold text-white">Transfer Successful</h2>
-          <p className="text-slate-400 text-sm mt-1">
+          <h2 className="text-2xl font-bold text-white print:text-black">Transfer Successful</h2>
+          <p className="text-slate-400 text-sm mt-1 print:text-slate-600">
             Your transfer has been processed
           </p>
         </div>
 
         {/* Receipt */}
-        <div className="space-y-3 bg-slate-900/50 rounded-xl p-5 border border-slate-700/50">
+        <div className="space-y-3 bg-slate-900/50 rounded-xl p-5 border border-slate-700/50 print:bg-white print:border-slate-300">
           <div className="flex justify-between items-center">
             <span className="text-slate-400 text-sm">From Account</span>
             <span className="text-white text-sm font-medium">
@@ -291,10 +311,28 @@ function SuccessModal({ transaction, onClose }) {
           </div>
         </div>
 
+        {/* Share / Print */}
+        <div className="grid grid-cols-2 gap-3 mt-6 print:hidden">
+          <button
+            onClick={handleShare}
+            className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 text-slate-300 text-sm font-medium hover:bg-slate-800 transition-colors"
+          >
+            <Share2 className="w-4 h-4" />
+            {shared ? "Copied!" : "Share"}
+          </button>
+          <button
+            onClick={handlePrint}
+            className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 text-slate-300 text-sm font-medium hover:bg-slate-800 transition-colors"
+          >
+            <Printer className="w-4 h-4" />
+            Print Receipt
+          </button>
+        </div>
+
         {/* Done button */}
         <button
           onClick={onClose}
-          className="w-full mt-6 py-3 rounded-xl bg-gradient-to-r from-apex-600 to-apex-500 text-white font-semibold hover:from-apex-500 hover:to-apex-400 transition-all duration-300 btn-shine"
+          className="w-full mt-3 py-3 rounded-xl bg-gradient-to-r from-apex-600 to-apex-500 text-white font-semibold hover:from-apex-500 hover:to-apex-400 transition-all duration-300 btn-shine print:hidden"
         >
           Done
         </button>

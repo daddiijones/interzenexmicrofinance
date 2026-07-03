@@ -150,3 +150,25 @@ body {
   transform: rotate(30deg);
   animation: shimmer 3s linear infinite;
 }
+
+/* Printing a transfer receipt: hide everything except the receipt itself,
+   and force readable dark text on white regardless of the dark theme. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #receipt-content,
+  #receipt-content * {
+    visibility: visible;
+    color: #0f172a !important;
+    background: transparent !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: none !important;
+  }
+  #receipt-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+}
