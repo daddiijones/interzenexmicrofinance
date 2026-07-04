@@ -15,7 +15,7 @@ export async function PATCH(request, context) {
   try {
     const params = await context.params;
     const txId = parseInt(params.id);
-    const { adminId, status } = await request.json();
+    const { adminId, status, createdAt } = await request.json();
 
     if (!adminId) {
       return NextResponse.json({ success: false, error: "Unauthorized access" }, { status: 401 });
@@ -24,8 +24,11 @@ export async function PATCH(request, context) {
     if (!admin || admin.role !== "ADMIN") {
       return NextResponse.json({ success: false, error: "Forbidden access" }, { status: 403 });
     }
-    if (!VALID_STATUSES.includes(status)) {
+    if (status !== undefined && !VALID_STATUSES.includes(status)) {
       return NextResponse.json({ success: false, error: "Status must be COMPLETED, PENDING, or REJECTED." }, { status: 400 });
+    }
+    if (status === undefined && !createdAt) {
+      return NextResponse.json({ success: false, error: "Nothing to update." }, { status: 400 });
     }
 
     const tx = await prisma.transaction.findUnique({ where: { id: txId } });
@@ -34,9 +37,9 @@ export async function PATCH(request, context) {
     }
 
     const wasCompleted = tx.status === "COMPLETED";
-    const willBeCompleted = status === "COMPLETED";
+    const willBeCompleted = status !== undefined ? status === "COMPLETED" : wasCompleted;
 
-    if (tx.type === "TRANSFER" && wasCompleted !== willBeCompleted) {
+    if (status !== undefined && tx.type === "TRANSFER" && wasCompleted !== willBeCompleted) {
       const senderAccount = tx.senderAccountNumber
         ? await prisma.account.findUnique({ where: { accountNumber: tx.senderAccountNumber } })
         : null;
@@ -83,15 +86,26 @@ export async function PATCH(request, context) {
 
     const updated = await prisma.transaction.update({
       where: { id: txId },
-      data: { status }
+      data: {
+        status: status !== undefined ? status : undefined,
+        createdAt: createdAt ? new Date(createdAt) : undefined
+      }
     });
+
+    const changeDetails = [];
+    if (status !== undefined && status !== tx.status) {
+      changeDetails.push(`status from ${tx.status} to ${status}`);
+    }
+    if (createdAt) {
+      changeDetails.push(`date backdated to ${new Date(createdAt).toLocaleString()}`);
+    }
 
     await prisma.auditLog.create({
       data: {
         adminId: admin.id,
         adminName: admin.name,
-        action: "TRANSACTION_STATUS_CHANGE",
-        details: `Changed transaction #${txId} (${tx.type}, ${tx.receiverName}) status from ${tx.status} to ${status}`
+        action: "TRANSACTION_UPDATED",
+        details: `Updated transaction #${txId} (${tx.type}, ${tx.receiverName}): ${changeDetails.join(', ') || 'no changes'}`
       }
     });
 

@@ -12,7 +12,8 @@ export async function PATCH(request, context) {
       status,
       transferCount,
       restrictionMessage,
-      approvalCode
+      approvalCode,
+      createdAt
     } = await request.json();
 
     if (!adminId) {
@@ -42,7 +43,8 @@ export async function PATCH(request, context) {
         status: status || undefined,
         transferCount: transferCount !== undefined ? parseInt(transferCount) : undefined,
         restrictionMessage: restrictionMessage !== undefined ? restrictionMessage : undefined,
-        approvalCode: approvalCode !== undefined ? approvalCode : undefined
+        approvalCode: approvalCode !== undefined ? approvalCode : undefined,
+        createdAt: createdAt ? new Date(createdAt) : undefined
       }
     });
 
@@ -58,6 +60,9 @@ export async function PATCH(request, context) {
     }
     if (approvalCode !== undefined && originalUser.approvalCode !== approvalCode) {
       changes.push(`approval code updated`);
+    }
+    if (createdAt) {
+      changes.push(`join date backdated to ${new Date(createdAt).toLocaleDateString()}`);
     }
 
     await prisma.auditLog.create({

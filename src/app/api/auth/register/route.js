@@ -5,7 +5,7 @@ import { seedUserTransactions, generateAccountNumber, generateApprovalCode } fro
 
 export async function POST(request) {
   try {
-    const { email, password, name, currency, country } = await request.json();
+    const { email, password, name, currency, country, address, phone } = await request.json();
 
     if (!email || !password || !name) {
       return NextResponse.json({ success: false, error: "Please fill in all fields." }, { status: 400 });
@@ -30,6 +30,8 @@ export async function POST(request) {
         name,
         role: "USER",
         country: country || "",
+        address: address || "",
+        phone: phone || "",
         accountNumber: userAccountNumber,
         dailyLimit: 5000.00,
         status: "PENDING_APPROVAL",

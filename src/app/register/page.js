@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuthUser, setAuthUser } from "@/lib/useAuthUser";
 import { COUNTRIES, getCountryCurrency, countryFlag } from "@/lib/countries";
 import { CURRENCIES } from "@/lib/currencies";
+import { getDialCode } from "@/lib/dialCodes";
 import {
   Zap,
   Mail,
@@ -23,6 +24,8 @@ import {
   Camera,
   IdCard,
   Upload,
+  MapPin,
+  Phone,
 } from "lucide-react";
 
 async function uploadFile(file, userId, type) {
@@ -55,6 +58,9 @@ export default function RegisterPage() {
     confirmPassword: "",
     country: "US",
     currency: "USD",
+    address: "",
+    phoneCountry: "US",
+    phoneNumber: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -74,6 +80,9 @@ export default function RegisterPage() {
       ...prev,
       country: countryCode,
       currency: getCountryCurrency(countryCode),
+      // Default the phone country code to match, but the user can still
+      // change it independently below (e.g. a foreign phone number).
+      phoneCountry: countryCode,
     }));
   }
 
@@ -86,6 +95,8 @@ export default function RegisterPage() {
       return "Password must be at least 6 characters.";
     if (form.password !== form.confirmPassword)
       return "Passwords do not match.";
+    if (!form.address.trim()) return "Address is required.";
+    if (!form.phoneNumber.trim()) return "Phone number is required.";
     if (!profilePhotoFile) return "A profile photo is required.";
     if (!passportFile) return "A passport or ID document is required for identity verification.";
     return null;
@@ -113,6 +124,8 @@ export default function RegisterPage() {
           password: form.password,
           country: form.country,
           currency: form.currency,
+          address: form.address,
+          phone: `${getDialCode(form.phoneCountry)} ${form.phoneNumber}`.trim(),
         }),
       });
 
@@ -371,6 +384,60 @@ export default function RegisterPage() {
                   ))}
                 </select>
                 <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* address */}
+            <div>
+              <label htmlFor="address" className="block text-sm font-medium text-slate-300 mb-1.5">
+                Address
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  id="address"
+                  type="text"
+                  autoComplete="street-address"
+                  placeholder="123 Main St, City, State"
+                  value={form.address}
+                  onChange={update("address")}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* phone */}
+            <div>
+              <label htmlFor="phoneNumber" className="block text-sm font-medium text-slate-300 mb-1.5">
+                Phone Number
+              </label>
+              <div className="flex gap-2">
+                <div className="relative w-32 shrink-0">
+                  <select
+                    value={form.phoneCountry}
+                    onChange={(e) => setForm((prev) => ({ ...prev, phoneCountry: e.target.value }))}
+                    className="w-full appearance-none pl-3 pr-7 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code} className="bg-slate-800 text-white">
+                        {countryFlag(c.code)} {getDialCode(c.code)}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none" />
+                </div>
+                <div className="relative flex-1">
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    id="phoneNumber"
+                    type="tel"
+                    autoComplete="tel-national"
+                    placeholder="555 123 4567"
+                    value={form.phoneNumber}
+                    onChange={update("phoneNumber")}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+                  />
+                </div>
               </div>
             </div>
 

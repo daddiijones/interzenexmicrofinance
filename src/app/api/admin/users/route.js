@@ -5,7 +5,7 @@ import { seedUserTransactions, generateAccountNumber, generateApprovalCode } fro
 
 export async function POST(request) {
   try {
-    const { adminId, email, password, name, currency, country } = await request.json();
+    const { adminId, email, password, name, currency, country, address, phone, joinedAt } = await request.json();
 
     if (!adminId) {
       return NextResponse.json({ success: false, error: "Unauthorized access" }, { status: 401 });
@@ -39,10 +39,13 @@ export async function POST(request) {
         name,
         role: "USER",
         country: country || "",
+        address: address || "",
+        phone: phone || "",
         accountNumber: userAccountNumber,
         dailyLimit: 5000.00,
         status: "ACTIVE",
         transferCount: 5,
+        createdAt: joinedAt ? new Date(joinedAt) : undefined,
         approvalCode: userApprovalCode,
         restrictionMessage: "You have reached your daily transfer limit. Please contact support to obtain your Approval Code to authorise this transaction."
       }
