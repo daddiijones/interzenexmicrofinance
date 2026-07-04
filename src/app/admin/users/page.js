@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuthUser } from "@/lib/useAuthUser";
 import { COUNTRIES, getCountryCurrency, countryFlag } from "@/lib/countries";
 import { CURRENCIES } from "@/lib/currencies";
+import { getDialCode } from "@/lib/dialCodes";
 import {
   Users,
   Search,
@@ -33,6 +34,9 @@ import {
   Clock,
   ThumbsUp,
   ThumbsDown,
+  MapPin,
+  Phone,
+  CalendarClock,
 } from "lucide-react";
 
 async function uploadFile(file, userId, type) {
@@ -72,6 +76,12 @@ const STATUS_CONFIG = {
   },
 };
 
+function toDateInput(dateStr) {
+  const d = new Date(dateStr);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 function formatCurrency(value) {
   return Number(value || 0).toLocaleString("en-US", {
     style: "currency",
@@ -98,6 +108,7 @@ export default function AdminUsersPage() {
     transferCount: "5",
     restrictionMessage: "",
     approvalCode: "",
+    joinedAt: "",
   });
 
   // Account balance editing
@@ -113,6 +124,10 @@ export default function AdminUsersPage() {
     password: "",
     country: "US",
     currency: "USD",
+    address: "",
+    phoneCountry: "US",
+    phoneNumber: "",
+    joinedAt: "",
   });
   const [showCreatePassword, setShowCreatePassword] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -174,6 +189,7 @@ export default function AdminUsersPage() {
       transferCount: user.transferCount ?? "5",
       restrictionMessage: user.restrictionMessage || "",
       approvalCode: user.approvalCode || "",
+      joinedAt: user.createdAt ? toDateInput(user.createdAt) : "",
     });
     const balances = {};
     (user.accounts || []).forEach(acc => {
@@ -204,6 +220,7 @@ export default function AdminUsersPage() {
     try {
       if (!admin?.id) return;
 
+      const originalJoinedAt = selectedUser.createdAt ? toDateInput(selectedUser.createdAt) : "";
       const res = await fetch(`/api/admin/users/${selectedUser.id}/limits`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -214,6 +231,7 @@ export default function AdminUsersPage() {
           transferCount: form.transferCount,
           restrictionMessage: form.restrictionMessage,
           approvalCode: form.approvalCode,
+          createdAt: form.joinedAt && form.joinedAt !== originalJoinedAt ? form.joinedAt : undefined,
         }),
       });
 
@@ -329,7 +347,17 @@ export default function AdminUsersPage() {
   };
 
   const openCreateModal = () => {
-    setCreateForm({ name: "", email: "", password: "", country: "US", currency: "USD" });
+    setCreateForm({
+      name: "",
+      email: "",
+      password: "",
+      country: "US",
+      currency: "USD",
+      address: "",
+      phoneCountry: "US",
+      phoneNumber: "",
+      joinedAt: "",
+    });
     setCreateFeedback(null);
     setShowCreatePassword(false);
     setCreateProfilePhotoFile(null);
@@ -348,6 +376,7 @@ export default function AdminUsersPage() {
       ...prev,
       country: countryCode,
       currency: getCountryCurrency(countryCode),
+      phoneCountry: countryCode,
     }));
   };
 
@@ -368,6 +397,10 @@ export default function AdminUsersPage() {
     setCreateFeedback(null);
 
     try {
+      const phone = createForm.phoneNumber.trim()
+        ? `${getDialCode(createForm.phoneCountry)} ${createForm.phoneNumber.trim()}`
+        : "";
+
       const res = await fetch(`/api/admin/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -378,6 +411,9 @@ export default function AdminUsersPage() {
           password: createForm.password,
           country: createForm.country,
           currency: createForm.currency,
+          address: createForm.address,
+          phone,
+          joinedAt: createForm.joinedAt || undefined,
         }),
       });
       const json = await res.json();
@@ -841,6 +877,25 @@ export default function AdminUsersPage() {
                     Settings & Restrictions
                   </h3>
 
+                  {/* Member Since / Join Date (backdate) */}
+                  <div>
+                    <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
+                      <CalendarClock className="w-3.5 h-3.5" />
+                      Member Since
+                    </label>
+                    <input
+                      type="date"
+                      value={form.joinedAt}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, joinedAt: e.target.value }))
+                      }
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700/40 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-apex-500/40 focus:border-apex-500/40 transition-all duration-200"
+                    />
+                    <p className="mt-1.5 text-[11px] text-slate-600">
+                      Backdate when this user joined — controls their displayed account age.
+                    </p>
+                  </div>
+
                   {/* Daily Limit */}
                   <div>
                     <label className="block text-xs font-medium text-slate-400 mb-1.5">
@@ -1159,6 +1214,70 @@ export default function AdminUsersPage() {
                 </select>
                 <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               </div>
+            </div>
+
+            {/* Address */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                Address <span className="text-slate-500 font-normal">(optional)</span>
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
+                <textarea
+                  value={createForm.address}
+                  onChange={(e) => setCreateForm((prev) => ({ ...prev, address: e.target.value }))}
+                  rows={2}
+                  placeholder="Street, city, state/province, postal code"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                Phone Number <span className="text-slate-500 font-normal">(optional)</span>
+              </label>
+              <div className="flex gap-2">
+                <div className="relative w-32 shrink-0">
+                  <select
+                    value={createForm.phoneCountry}
+                    onChange={(e) => setCreateForm((prev) => ({ ...prev, phoneCountry: e.target.value }))}
+                    className="w-full appearance-none pl-3 pr-7 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code} className="bg-slate-800 text-white">
+                        {countryFlag(c.code)} {getDialCode(c.code)}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none" />
+                </div>
+                <div className="relative flex-1">
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="tel"
+                    placeholder="5551234567"
+                    value={createForm.phoneNumber}
+                    onChange={(e) => setCreateForm((prev) => ({ ...prev, phoneNumber: e.target.value }))}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Join date (backdate) */}
+            <div>
+              <label className="flex items-center gap-1.5 text-sm font-medium text-slate-300 mb-1.5">
+                <CalendarClock className="w-4 h-4 text-slate-500" />
+                Member Since <span className="text-slate-500 font-normal">(optional — defaults to today)</span>
+              </label>
+              <input
+                type="date"
+                value={createForm.joinedAt}
+                onChange={(e) => setCreateForm((prev) => ({ ...prev, joinedAt: e.target.value }))}
+                className="w-full px-4 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+              />
             </div>
 
             {/* Profile photo */}

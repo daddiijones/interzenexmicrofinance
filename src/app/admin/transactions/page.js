@@ -12,6 +12,8 @@ import {
   XCircle,
   ArrowUpRight,
   Loader2,
+  CalendarClock,
+  Check,
 } from "lucide-react";
 
 const STATUS_CONFIG = {
@@ -38,6 +40,12 @@ function formatDate(dateStr) {
   });
 }
 
+function toDatetimeLocal(dateStr) {
+  const d = new Date(dateStr);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default function AdminTransactionsPage() {
   const admin = useAuthUser();
   const [transactions, setTransactions] = useState([]);
@@ -47,6 +55,8 @@ export default function AdminTransactionsPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [updatingId, setUpdatingId] = useState(null);
   const [feedback, setFeedback] = useState(null);
+  const [editingDateId, setEditingDateId] = useState(null);
+  const [dateValue, setDateValue] = useState("");
 
   const fetchTransactions = useCallback(async () => {
     if (!admin?.id) return;
@@ -85,6 +95,31 @@ export default function AdminTransactionsPage() {
         setFeedback({ type: "success", message: `Transaction #${txId} marked ${newStatus}.` });
       } else {
         setFeedback({ type: "error", message: json.error || "Failed to update status." });
+      }
+    } catch (err) {
+      setFeedback({ type: "error", message: err.message });
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  async function handleDateChange(txId) {
+    if (!admin?.id || !dateValue) return;
+    setUpdatingId(txId);
+    setFeedback(null);
+    try {
+      const res = await fetch(`/api/admin/transactions/${txId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminId: admin.id, createdAt: new Date(dateValue).toISOString() }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setTransactions((prev) => prev.map((t) => (t.id === txId ? { ...t, createdAt: json.transaction.createdAt } : t)));
+        setFeedback({ type: "success", message: `Transaction #${txId} date updated.` });
+        setEditingDateId(null);
+      } else {
+        setFeedback({ type: "error", message: json.error || "Failed to update date." });
       }
     } catch (err) {
       setFeedback({ type: "error", message: err.message });
@@ -229,7 +264,48 @@ export default function AdminTransactionsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 hidden lg:table-cell">
-                      <span className="text-xs text-slate-500">{formatDate(tx.createdAt)}</span>
+                      {editingDateId === tx.id ? (
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="datetime-local"
+                            value={dateValue}
+                            onChange={(e) => setDateValue(e.target.value)}
+                            className="text-xs bg-slate-800/60 border border-slate-700/40 rounded-lg px-2 py-1.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-apex-500/40"
+                          />
+                          {updatingId === tx.id ? (
+                            <Loader2 className="w-4 h-4 text-slate-500 animate-spin shrink-0" />
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => handleDateChange(tx.id)}
+                                className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                                title="Save date"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => setEditingDateId(null)}
+                                className="p-1.5 rounded-lg bg-slate-700/40 text-slate-400 hover:text-slate-200"
+                                title="Cancel"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditingDateId(tx.id);
+                            setDateValue(toDatetimeLocal(tx.createdAt));
+                          }}
+                          className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-apex-400 transition-colors group"
+                          title="Backdate this transaction"
+                        >
+                          {formatDate(tx.createdAt)}
+                          <CalendarClock className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
