@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { convertCurrency } from '@/lib/currencies';
+import { sendTransactionEmail } from '@/lib/mailer';
 
 // GET: Retrieve all transactions for a user
 export async function GET(request) {
@@ -208,6 +209,18 @@ export async function POST(request) {
     const transfersLeft = limitActive
       ? Math.max(0, user.transferCount - (todayCount + 1))
       : null;
+
+    // Email confirmation to the sender — failure here shouldn't fail the transfer itself
+    try {
+      await sendTransactionEmail({
+        to: user.email,
+        name: user.name,
+        transaction,
+        newBalance: updatedSenderAccount?.balance
+      });
+    } catch (emailError) {
+      console.error("Transaction confirmation email failed: ", emailError);
+    }
 
     return NextResponse.json({
       success: true,

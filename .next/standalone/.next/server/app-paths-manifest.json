@@ -3,6 +3,7 @@
   "/_not-found/page": "app/_not-found/page.js",
   "/about/page": "app/about/page.js",
   "/admin/audit/page": "app/admin/audit/page.js",
+  "/admin/documents/page": "app/admin/documents/page.js",
   "/admin/page": "app/admin/page.js",
   "/admin/tickets/page": "app/admin/tickets/page.js",
   "/admin/transactions/page": "app/admin/transactions/page.js",

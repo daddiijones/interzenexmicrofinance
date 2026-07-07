@@ -3,6 +3,7 @@
   "/_not-found/page": "/_not-found",
   "/about/page": "/about",
   "/admin/audit/page": "/admin/audit",
+  "/admin/documents/page": "/admin/documents",
   "/admin/page": "/admin",
   "/admin/tickets/page": "/admin/tickets",
   "/admin/transactions/page": "/admin/transactions",

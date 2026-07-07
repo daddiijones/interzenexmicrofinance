@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { sendApprovalEmail } from '@/lib/mailer';
 
 export async function PATCH(request, context) {
   try {
@@ -63,6 +64,16 @@ export async function PATCH(request, context) {
     }
     if (createdAt) {
       changes.push(`join date backdated to ${new Date(createdAt).toLocaleDateString()}`);
+    }
+
+    // Notify the user by email the moment their account moves into ACTIVE —
+    // covers both the pending-approval flow and any manual reinstatement.
+    if (status === "ACTIVE" && originalUser.status !== "ACTIVE") {
+      try {
+        await sendApprovalEmail({ to: updatedUser.email, name: updatedUser.name });
+      } catch (emailError) {
+        console.error("Approval notification email failed: ", emailError);
+      }
     }
 
     await prisma.auditLog.create({

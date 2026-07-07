@@ -16,6 +16,7 @@ import {
   EyeOff,
   Hash,
   Shield,
+  CalendarClock,
 } from "lucide-react";
 
 async function uploadFile(file, userId, type) {
@@ -162,6 +163,12 @@ export default function ProfilePage() {
               <Shield className="w-3.5 h-3.5" />
               {user.status}
             </span>
+            {user.createdAt && (
+              <span className="flex items-center gap-1.5">
+                <CalendarClock className="w-3.5 h-3.5" />
+                Member since {new Date(user.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+              </span>
+            )}
           </div>
         </div>
       </div>

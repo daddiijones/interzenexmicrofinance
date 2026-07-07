@@ -22,6 +22,7 @@ import {
   X,
   Receipt,
   UserCircle,
+  FolderOpen,
 } from "lucide-react";
 
 const USER_NAV = [
@@ -37,6 +38,7 @@ const USER_NAV = [
 const ADMIN_NAV = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
   { label: "Users", href: "/admin/users", icon: Users },
+  { label: "Documents", href: "/admin/documents", icon: FolderOpen },
   { label: "Transactions", href: "/admin/transactions", icon: Receipt },
   { label: "Tickets", href: "/admin/tickets", icon: MessageSquare },
   { label: "Audit Log", href: "/admin/audit", icon: FileText },

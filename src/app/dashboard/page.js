@@ -221,12 +221,13 @@ export default function DashboardPage() {
       : "received";
   }
 
-  const todayStr = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const memberSinceStr = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "";
 
   if (loading || !user) {
     return (
@@ -264,7 +265,8 @@ export default function DashboardPage() {
             </span>
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            {user.email} • Account {user.accountNumber} • {todayStr}
+            {user.email} • Account {user.accountNumber}
+            {memberSinceStr && <> • Member since {memberSinceStr}</>}
           </p>
         </div>
       </div>
