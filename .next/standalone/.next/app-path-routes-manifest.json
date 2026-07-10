@@ -23,6 +23,7 @@
   "/api/support/[id]/route": "/api/support/[id]",
   "/api/support/route": "/api/support",
   "/api/transactions/route": "/api/transactions",
+  "/api/transfer-otp/request/route": "/api/transfer-otp/request",
   "/api/upload/route": "/api/upload",
   "/api/user/route": "/api/user",
   "/atm-locations/page": "/atm-locations",

@@ -27,6 +27,8 @@ import {
   Plane,
   Share2,
   Printer,
+  Mail,
+  RotateCw,
 } from "lucide-react";
 
 /* ─── Processing Animation Steps ─── */
@@ -500,9 +502,118 @@ function ConfirmModal({ details, onConfirm, onEdit, loading }) {
             disabled={loading}
             className="flex-1 py-3 rounded-xl bg-gradient-to-r from-apex-600 to-emerald-500 text-white text-sm font-semibold hover:from-apex-500 hover:to-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all btn-shine flex items-center justify-center gap-2"
           >
-            {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Processing…</> : <><Send className="w-4 h-4" />Confirm Transfer</>}
+            {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Sending code…</> : <><Send className="w-4 h-4" />Confirm Transfer</>}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Transfer OTP Modal ─── */
+function TransferOtpModal({
+  summary,
+  onSubmit,
+  onResend,
+  onClose,
+  loading,
+  resending,
+  cooldown,
+  error,
+}) {
+  const [code, setCode] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!code.trim()) return;
+    onSubmit(code.trim());
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+
+      <div className="glass relative z-10 w-full max-w-md rounded-2xl p-8 animate-slide-up border border-apex-500/20">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="flex flex-col items-center mb-6">
+          <div className="w-16 h-16 rounded-full bg-apex-500/15 flex items-center justify-center mb-4">
+            <Mail className="w-8 h-8 text-apex-400" />
+          </div>
+          <h2 className="text-xl font-bold text-white text-center">
+            Verify This Transfer
+          </h2>
+          <p className="text-slate-400 text-sm text-center mt-2">
+            We sent a 6-digit code to your email to confirm sending{" "}
+            <span className="text-slate-200 font-semibold">
+              {formatCurrency(summary.amount, summary.currency)}
+            </span>{" "}
+            to <span className="text-slate-200 font-semibold">{summary.receiverName}</span>.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="relative">
+            <input
+              type="text"
+              inputMode="numeric"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="000000"
+              className="w-full bg-slate-900/80 border border-slate-600/50 rounded-xl px-4 py-3.5 text-white font-mono text-center text-2xl tracking-[0.4em] placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-apex-500/50 focus:border-apex-500/50 transition-all"
+              autoFocus
+              autoComplete="off"
+            />
+          </div>
+
+          {error && (
+            <div className="mt-3 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-2.5 animate-fade-in">
+              <p className="text-red-400 text-sm text-center">{error}</p>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || code.trim().length !== 6}
+            className="w-full mt-5 py-3.5 rounded-xl bg-gradient-to-r from-apex-600 to-apex-500 text-white font-semibold hover:from-apex-500 hover:to-apex-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 btn-shine"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Verifying…
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="w-5 h-5" />
+                Confirm &amp; Send
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={onResend}
+            disabled={cooldown > 0 || resending}
+            className="w-full mt-3 py-2.5 rounded-xl text-sm font-medium text-apex-400 hover:text-apex-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
+          >
+            {resending ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <RotateCw className="w-3.5 h-3.5" />
+            )}
+            {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+          </button>
+        </form>
+
+        <p className="text-slate-500 text-xs text-center mt-4 flex items-center justify-center gap-1">
+          <Lock className="w-3 h-3" />
+          256-bit encrypted · Interzenex Secure Transfer Protocol
+        </p>
       </div>
     </div>
   );
@@ -539,6 +650,20 @@ export default function TransferPage() {
   const [approvalModal, setApprovalModal] = useState(null);
   const [approvalLoading, setApprovalLoading] = useState(false);
   const [approvalError, setApprovalError] = useState("");
+
+  // Transfer OTP verification
+  const [pendingPayload, setPendingPayload] = useState(null); // snapshot of the transfer taken at "Confirm Transfer"
+  const [otpModal, setOtpModal] = useState(null); // { amount, currency, receiverName } for display
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpResending, setOtpResending] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [otpCooldown, setOtpCooldown] = useState(0);
+
+  useEffect(() => {
+    if (otpCooldown <= 0) return;
+    const interval = setInterval(() => setOtpCooldown((c) => Math.max(0, c - 1)), 1000);
+    return () => clearInterval(interval);
+  }, [otpCooldown]);
 
   const effectiveAccountId =
     selectedAccountId || accounts[0]?.id?.toString() || "";
@@ -654,41 +779,114 @@ export default function TransferPage() {
     });
   };
 
-  // Step 2: user confirmed — execute the transfer
+  // Step 2: user confirmed the details — snapshot the payload and request an
+  // email OTP before any money actually moves.
   const handleConfirmedTransfer = async () => {
     setLoading(true);
 
+    const payload = buildPayload();
+
     try {
-      const res = await fetch("/api/transactions", {
+      const res = await fetch("/api/transfer-otp/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildPayload()),
+        body: JSON.stringify({
+          userId: user.id,
+          amount: payload.amount,
+          currency: payload.currency,
+          receiverName: payload.receiverName,
+        }),
       });
 
       const data = await res.json();
 
       if (res.ok && data.success) {
-        refreshUser();
+        setPendingPayload(payload);
         setConfirmDetails(null);
-        setProcessingMode("success");
-        setProcessingTx(data.transaction);
-        resetForm();
-      } else if (res.status === 403 && data.limitExceeded) {
-        // Play the animation first, then surface the Approval Code modal at the end
-        setConfirmDetails(null);
-        setPendingApproval({ restrictionMessage: data.restrictionMessage });
-        setProcessingMode("approval");
-        setProcessingTx("__limit__"); // truthy sentinel to trigger animation
-        resetForm();
+        setOtpError("");
+        setOtpCooldown(data.cooldown || 60);
+        setOtpModal({ amount: payload.amount, currency: payload.currency, receiverName: payload.receiverName });
       } else {
         setConfirmDetails(null);
-        setError(data.error || "Transfer failed. Please try again.");
+        setError(data.error || "Could not send verification code. Please try again.");
       }
     } catch {
       setConfirmDetails(null);
       setError("Network error. Please check your connection and try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Step 3: user entered the emailed code — actually execute the transfer
+  const handleOtpSubmit = async (code) => {
+    if (!pendingPayload) return;
+    setOtpError("");
+    setOtpLoading(true);
+
+    try {
+      const res = await fetch("/api/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...pendingPayload, otpCode: code }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        refreshUser();
+        setOtpModal(null);
+        setPendingPayload(null);
+        setProcessingMode("success");
+        setProcessingTx(data.transaction);
+        resetForm();
+      } else if (res.status === 403 && data.limitExceeded) {
+        // Rare edge case: the daily limit was hit between confirm and OTP entry
+        setOtpModal(null);
+        setPendingPayload(null);
+        setPendingApproval({ restrictionMessage: data.restrictionMessage });
+        setProcessingMode("approval");
+        setProcessingTx("__limit__");
+        resetForm();
+      } else {
+        setOtpError(data.error || "Verification failed. Please try again.");
+      }
+    } catch {
+      setOtpError("Network error. Please try again.");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!pendingPayload || otpCooldown > 0 || otpResending) return;
+    setOtpResending(true);
+    setOtpError("");
+
+    try {
+      const res = await fetch("/api/transfer-otp/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          amount: pendingPayload.amount,
+          currency: pendingPayload.currency,
+          receiverName: pendingPayload.receiverName,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setOtpCooldown(data.cooldown || 60);
+      } else {
+        setOtpError(data.error || "Could not resend code.");
+        if (data.retryAfter) setOtpCooldown(data.retryAfter);
+      }
+    } catch {
+      setOtpError("Network error. Please try again.");
+    } finally {
+      setOtpResending(false);
     }
   };
 
@@ -1026,6 +1224,24 @@ export default function TransferPage() {
           onConfirm={handleConfirmedTransfer}
           onEdit={() => setConfirmDetails(null)}
           loading={loading}
+        />
+      )}
+
+      {/* Transfer OTP Modal */}
+      {otpModal && (
+        <TransferOtpModal
+          summary={otpModal}
+          onSubmit={handleOtpSubmit}
+          onResend={handleResendOtp}
+          onClose={() => {
+            setOtpModal(null);
+            setPendingPayload(null);
+            setOtpError("");
+          }}
+          loading={otpLoading}
+          resending={otpResending}
+          cooldown={otpCooldown}
+          error={otpError}
         />
       )}
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { convertCurrency } from '@/lib/currencies';
+import { sendTransactionReversalEmail } from '@/lib/mailer';
 
 const VALID_STATUSES = ["COMPLETED", "PENDING", "REJECTED"];
 
@@ -108,6 +109,24 @@ export async function PATCH(request, context) {
         details: `Updated transaction #${txId} (${tx.type}, ${tx.receiverName}): ${changeDetails.join(', ') || 'no changes'}`
       }
     });
+
+    // Notify the sender when their transfer gets rejected — including
+    // whether the funds were actually reversed back into their balance
+    if (status === "REJECTED" && tx.status !== "REJECTED" && tx.type === "TRANSFER" && tx.senderId) {
+      try {
+        const sender = await prisma.user.findUnique({ where: { id: tx.senderId } });
+        if (sender) {
+          await sendTransactionReversalEmail({
+            to: sender.email,
+            name: sender.name,
+            transaction: updated,
+            reversed: wasCompleted
+          });
+        }
+      } catch (emailError) {
+        console.error("Transaction reversal email failed: ", emailError);
+      }
+    }
 
     return NextResponse.json({ success: true, transaction: updated });
   } catch (error) {

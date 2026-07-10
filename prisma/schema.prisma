@@ -26,6 +26,9 @@ model User {
   otpCode            String          @default("") // pending login OTP, cleared after verification
   otpExpiresAt       DateTime?       // expiry for the pending login OTP
   otpLastSentAt      DateTime?       // used to enforce the resend cooldown
+  transferOtpCode      String     @default("") // pending transfer verification OTP, cleared after use
+  transferOtpExpiresAt DateTime?  // expiry for the pending transfer OTP
+  transferOtpLastSentAt DateTime? // used to enforce the transfer OTP resend cooldown
   profilePhoto       String          @default("") // relative path under the uploads dir, served via /api/files
   passportDocument   String          @default("") // relative path under the uploads dir; admin-only access
   createdAt          DateTime        @default(now())

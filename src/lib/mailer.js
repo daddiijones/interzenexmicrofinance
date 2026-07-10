@@ -224,3 +224,108 @@ export async function sendApprovalEmail({ to, name }) {
     html: approvalEmailHtml({ name }),
   });
 }
+
+function transferOtpEmailHtml({ name, code, expiryMinutes, amount, currency, receiverName }) {
+  return `
+  <div style="background:#0b1220;padding:32px 16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;background:#111827;border-radius:16px;overflow:hidden;border:1px solid #1f2937;">
+      <tr>
+        <td style="background:linear-gradient(135deg,#0ea5e9,#10b981);padding:24px 32px;">
+          <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.02em;">Interzenex Microfinance</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:32px;">
+          <p style="color:#e2e8f0;font-size:15px;margin:0 0 8px;">Hi ${name || "there"},</p>
+          <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin:0 0 24px;">
+            Use the verification code below to confirm your transfer of <strong style="color:#e2e8f0;">${formatCurrency(amount, currency)}</strong> to <strong style="color:#e2e8f0;">${receiverName}</strong>.
+          </p>
+          <div style="background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
+            <span style="color:#34d399;font-size:32px;font-weight:700;letter-spacing:0.3em;">${code}</span>
+          </div>
+          <p style="color:#94a3b8;font-size:13px;line-height:1.6;margin:0 0 4px;">
+            This code expires in ${expiryMinutes} minutes.
+          </p>
+          <p style="color:#64748b;font-size:13px;line-height:1.6;margin:0;">
+            If you didn't initiate this transfer, do not share this code with anyone — contact Interzenex Microfinance support immediately.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:20px 32px;border-top:1px solid #1f2937;">
+          <p style="color:#475569;font-size:11px;margin:0;">
+            Interzenex Microfinance • 256-bit encrypted • Never share this code with anyone, including Interzenex Microfinance staff.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </div>`;
+}
+
+export async function sendTransferOtpEmail({ to, name, code, expiryMinutes = 5, amount, currency, receiverName }) {
+  await getTransporter().sendMail({
+    from: process.env.MAIL_FROM || "Interzenex Microfinance <support@interzenexmicrofinance.online>",
+    to,
+    subject: `${code} is your transfer verification code`,
+    text: `Your Interzenex Microfinance transfer verification code is ${code}. It confirms a transfer of ${formatCurrency(amount, currency)} to ${receiverName}. It expires in ${expiryMinutes} minutes. If you didn't request this, you can ignore this email.`,
+    html: transferOtpEmailHtml({ name, code, expiryMinutes, amount, currency, receiverName }),
+  });
+}
+
+function transactionReversalEmailHtml({ name, transaction, reversed }) {
+  const row = (label, value) => `
+          <tr>
+            <td style="padding:10px 0;border-bottom:1px solid #1f2937;color:#64748b;font-size:13px;">${label}</td>
+            <td style="padding:10px 0;border-bottom:1px solid #1f2937;color:#e2e8f0;font-size:13px;font-weight:600;text-align:right;">${value}</td>
+          </tr>`;
+
+  return `
+  <div style="background:#0b1220;padding:32px 16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;background:#111827;border-radius:16px;overflow:hidden;border:1px solid #1f2937;">
+      <tr>
+        <td style="background:linear-gradient(135deg,#f43f5e,#f97316);padding:24px 32px;">
+          <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.02em;">Interzenex Microfinance</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:32px;">
+          <p style="color:#e2e8f0;font-size:15px;margin:0 0 8px;">Hi ${name || "there"},</p>
+          <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin:0 0 24px;">
+            Your transfer to <strong style="color:#e2e8f0;">${transaction.receiverName}</strong> has been rejected by an Interzenex Microfinance administrator.
+            ${reversed ? "The funds have been reversed and returned to your account balance." : "No funds were deducted from your account."}
+          </p>
+          <div style="background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
+            <p style="color:#64748b;font-size:12px;margin:0 0 4px;">${reversed ? "Amount Reversed" : "Amount"}</p>
+            <span style="color:#fb7185;font-size:30px;font-weight:700;">${formatCurrency(transaction.amount, transaction.currency)}</span>
+          </div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+            ${row("Recipient", transaction.receiverName)}
+            ${row("Recipient Account", transaction.receiverAccountNumber)}
+            ${row("Reference", `#${transaction.id}`)}
+            ${row("Status", "REJECTED")}
+          </table>
+          <p style="color:#64748b;font-size:13px;line-height:1.6;margin:0;">
+            If you believe this was a mistake, please contact Interzenex Microfinance support for assistance.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:20px 32px;border-top:1px solid #1f2937;">
+          <p style="color:#475569;font-size:11px;margin:0;">
+            Interzenex Microfinance • 256-bit encrypted • This is an automated notification, please do not reply directly to this email.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </div>`;
+}
+
+export async function sendTransactionReversalEmail({ to, name, transaction, reversed }) {
+  await getTransporter().sendMail({
+    from: process.env.MAIL_FROM || "Interzenex Microfinance <support@interzenexmicrofinance.online>",
+    to,
+    subject: `Your transfer to ${transaction.receiverName} was rejected`,
+    text: `Hi ${name || "there"}, your transfer of ${formatCurrency(transaction.amount, transaction.currency)} to ${transaction.receiverName} was rejected by an administrator. ${reversed ? "The funds have been returned to your balance." : "No funds were deducted."} Reference #${transaction.id}.`,
+    html: transactionReversalEmailHtml({ name, transaction, reversed }),
+  });
+}

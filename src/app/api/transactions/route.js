@@ -58,7 +58,8 @@ export async function POST(request) {
       amount,
       currency,
       description,
-      approvalCode
+      approvalCode,
+      otpCode
     } = await request.json();
 
     if (!userId || !senderAccountId || !receiverAccountNumber || !amount || !currency) {
@@ -80,6 +81,25 @@ export async function POST(request) {
 
     if (user.status === "SUSPENDED") {
       return NextResponse.json({ success: false, error: "Your account is suspended." }, { status: 403 });
+    }
+
+    // Every standard transfer must be confirmed with a one-time code emailed
+    // to the user first — see /api/transfer-otp/request. The approval-code
+    // override path (daily limit exceeded) already carries its own
+    // admin-issued secondary code, so it's exempt from this second check.
+    if (!approvalCode) {
+      if (!otpCode) {
+        return NextResponse.json({ success: false, otpRequired: true, error: "Verification code is required." }, { status: 400 });
+      }
+      if (!user.transferOtpCode) {
+        return NextResponse.json({ success: false, otpRequired: true, error: "No active verification code. Please request a new one." }, { status: 400 });
+      }
+      if (user.transferOtpExpiresAt && new Date(user.transferOtpExpiresAt) < new Date()) {
+        return NextResponse.json({ success: false, otpExpired: true, error: "This verification code has expired. Please request a new one." }, { status: 400 });
+      }
+      if (otpCode.trim() !== user.transferOtpCode) {
+        return NextResponse.json({ success: false, error: "Incorrect verification code." }, { status: 401 });
+      }
     }
 
     const senderAccount = await prisma.account.findFirst({
@@ -205,6 +225,14 @@ export async function POST(request) {
     const updatedSenderAccount = await prisma.account.findUnique({
       where: { id: senderAccount.id }
     });
+
+    // The OTP was single-use — clear it now that it's done its job
+    if (!approvalCode) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { transferOtpCode: "", transferOtpExpiresAt: null, transferOtpLastSentAt: null }
+      });
+    }
 
     const transfersLeft = limitActive
       ? Math.max(0, user.transferCount - (todayCount + 1))

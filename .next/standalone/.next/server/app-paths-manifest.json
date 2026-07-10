@@ -23,6 +23,7 @@
   "/api/support/[id]/route": "app/api/support/[id]/route.js",
   "/api/support/route": "app/api/support/route.js",
   "/api/transactions/route": "app/api/transactions/route.js",
+  "/api/transfer-otp/request/route": "app/api/transfer-otp/request/route.js",
   "/api/upload/route": "app/api/upload/route.js",
   "/api/user/route": "app/api/user/route.js",
   "/atm-locations/page": "app/atm-locations/page.js",

@@ -182,6 +182,12 @@
       "namedRegex": "^/api/transactions(?:/)?$"
     },
     {
+      "page": "/api/transfer-otp/request",
+      "regex": "^/api/transfer\\-otp/request(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/transfer\\-otp/request(?:/)?$"
+    },
+    {
       "page": "/api/upload",
       "regex": "^/api/upload(?:/)?$",
       "routeKeys": {},
